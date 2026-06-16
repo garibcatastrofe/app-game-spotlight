@@ -5,7 +5,7 @@ import {
 } from "@noriginmedia/norigin-spatial-navigation";
 import { useEffect } from "react";
 
-export function Home() {
+export function Genres() {
   const { ref, focused } = useFocusable({
     focusKey: "FIRST_CARD",
   });
@@ -33,12 +33,6 @@ export function Home() {
       </div>
 
       <ReturnCard />
-
-      <div className="flex">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <HomeCard index={i} />
-        ))}
-      </div>
     </div>
   );
 }
@@ -81,28 +75,5 @@ function ReturnCard() {
     >
       Regresar al login
     </button>
-  );
-}
-
-function HomeCard({ index }: { index: number }) {
-  const { ref, focused } = useFocusable();
-
-  useEffect(() => {
-    if (focused && ref.current) {
-      ref.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, [focused, ref]);
-
-  return (
-    <div
-      ref={ref}
-      className={`bg-mauve-700 rounded-2xl p-4 flex flex-col ring-2 transition-all duration-300 bg-slate-900 min-w-48 mx-4 ${focused ? "ring-purple-500" : "ring-transparent"}`}
-    >
-      <p className="mb-1 text-lg font-bold">Card</p>
-      <p className="text-sm text-mauve-400">Número {index + 1}</p>
-    </div>
   );
 }
