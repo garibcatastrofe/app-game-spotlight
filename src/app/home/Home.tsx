@@ -53,6 +53,7 @@ export function Home() {
         }
       } catch (err) {
         console.error("Error loading home page data:", err);
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -65,7 +66,7 @@ export function Home() {
 
   const handleToggleFavorite = async (gameId: string) => {
     try {
-      const res = await api.toggleFavorite(gameId);
+      const res = await api.toggleFavorite(gameId, favorites.includes(gameId));
       if (res.favorited) {
         setFavorites((prev) => [...prev, gameId]);
       } else {

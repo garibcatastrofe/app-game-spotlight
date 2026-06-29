@@ -1,16 +1,25 @@
 import { EyeOff, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { api } from "../../../../shared/services/api";
 
 export function EmailForm() {
+  const usernameRef = useRef<HTMLInputElement>(null!);
+  const passwordRef = useRef<HTMLInputElement>(null!);
+  const [error, setError] = useState<string | null>(null);
+
   return (
     <div className="flex flex-col justify-center w-full px-10">
       <p className="mb-4 text-4xl font-bold text-center">ACCESO A TU CUENTA</p>
 
-      <EmailInput />
-      <PasswordInput />
-      <LoginButton />
+      <EmailInput inputRef={usernameRef} />
+      <PasswordInput inputRef={passwordRef} />
+      <LoginButton usernameRef={usernameRef} passwordRef={passwordRef} onError={setError} />
+
+      {error && (
+        <p className="text-red-400 text-center mt-2 text-lg font-semibold">{error}</p>
+      )}
 
       <div className="flex flex-col items-center w-full gap-1">
         <ForgottenPassword />
@@ -20,18 +29,9 @@ export function EmailForm() {
   );
 }
 
-function EmailInput() {
-  const inputRef = useRef<HTMLInputElement>(null);
-
+function EmailInput({ inputRef }: { inputRef: React.RefObject<HTMLInputElement> }) {
   const { ref, focused } = useFocusable({
     focusKey: "FIRST_CARD",
-    /* onEnterPress: () => {
-      console.log(inputRef.current);
-
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, */
     onEnterPress: () => {
       inputRef.current?.focus();
     },
@@ -57,17 +57,8 @@ function EmailInput() {
   );
 }
 
-function PasswordInput() {
-  const inputRef = useRef<HTMLInputElement>(null);
-
+function PasswordInput({ inputRef }: { inputRef: React.RefObject<HTMLInputElement> }) {
   const { ref, focused } = useFocusable({
-    /* onEnterPress: () => {
-      console.log(inputRef.current);
-
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, */
     onEnterPress: () => {
       inputRef.current?.focus();
     },
@@ -92,51 +83,58 @@ function PasswordInput() {
   );
 }
 
-function LoginButton() {
+function LoginButton({
+  usernameRef,
+  passwordRef,
+  onError,
+}: {
+  usernameRef: React.RefObject<HTMLInputElement>;
+  passwordRef: React.RefObject<HTMLInputElement>;
+  onError: (err: string | null) => void;
+}) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const { ref, focused } = useFocusable({
-    onEnterPress: () => {
-      navigate("/home");
+    onEnterPress: async () => {
+      const username = usernameRef.current?.value?.trim();
+      const password = passwordRef.current?.value;
+      if (!username || !password) {
+        onError("Ingresa usuario y contraseña");
+        return;
+      }
+      setLoading(true);
+      onError(null);
+      try {
+        await api.login(username, password);
+        navigate("/home");
+      } catch (err: any) {
+        onError(err.message || "Credenciales inválidas");
+      } finally {
+        setLoading(false);
+      }
     },
   });
 
   return (
     <button
       ref={ref}
-      className={`p-4 mb-4 rounded-xl ring-4 font-semibold text-2xl mt-2 bg-gradient-to-r from-purple-600 to-purple-950 transition-all duration-300 ${focused ? "ring-purple-500" : "ring-transparent"}`}
+      disabled={loading}
+      className={`p-4 mb-4 rounded-xl ring-4 font-semibold text-2xl mt-2 bg-gradient-to-r from-purple-600 to-purple-950 transition-all duration-300 disabled:opacity-50 ${focused ? "ring-purple-500" : "ring-transparent"}`}
     >
-      ENTRAR
+      {loading ? "CARGANDO..." : "ENTRAR"}
     </button>
   );
 }
 
 function ForgottenPassword() {
-  const { ref, focused } = useFocusable();
-
   return (
-    <div
-      ref={ref}
-      className={`py-1 px-4 rounded-xl ring-4 transition-all duration-300 ${focused ? "ring-purple-500" : "ring-transparent"}`}
-    >
-      <p className="text-lg text-center text-slate-400 w-fit">
-        ¿Olvidaste tu contraseña?
-      </p>
-    </div>
+    <p className="text-xs underline text-slate-400">¿Olvidaste tu contraseña?</p>
   );
 }
 
 function CreateAccount() {
-  const { ref, focused } = useFocusable();
-
   return (
-    <div
-      ref={ref}
-      className={`py-1 px-4 rounded-xl ring-4 transition-all duration-300 ${focused ? "ring-purple-500" : "ring-transparent"}`}
-    >
-      <p className="text-lg font-semibold text-center text-purple-300 w-fit">
-        CREAR NUEVA CUENTA
-      </p>
-    </div>
+    <p className="text-xs underline text-slate-400">Crear cuenta</p>
   );
 }

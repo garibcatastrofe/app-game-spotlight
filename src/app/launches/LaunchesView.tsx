@@ -38,7 +38,12 @@ export function LaunchesView() {
 
   const handleReserve = async (idLanzamiento: string) => {
     try {
-      await api.reserveLaunch(idLanzamiento);
+      const launch = launches.find((l) => l.idLanzamiento === idLanzamiento);
+      if (launch?.reservado) {
+        await api.cancelReservation(idLanzamiento);
+      } else {
+        await api.reserveLaunch(idLanzamiento);
+      }
       setLaunches((prev) =>
         prev.map((l) =>
           l.idLanzamiento === idLanzamiento ? { ...l, reservado: !l.reservado } : l

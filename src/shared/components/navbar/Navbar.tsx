@@ -1,6 +1,7 @@
 import { Gamepad2, Bell, Search } from "lucide-react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useNavigate, useLocation } from "react-router-dom";
+import { api } from "../../services/api";
 import user from "./images/userPhoto.jpg";
 
 const links: { label: string; href: string }[] = [
@@ -111,8 +112,12 @@ function BellIcon() {
 }
 
 function UserProfile() {
+  const navigate = useNavigate();
   const { ref, focused } = useFocusable({
-    onEnterPress: () => {},
+    onEnterPress: async () => {
+      await api.logout();
+      navigate("/");
+    },
   });
 
   return (
@@ -120,6 +125,7 @@ function UserProfile() {
       ref={ref}
       className={`min-w-8 min-h-8 w-8 h-8 rounded-full ring-2 transition-all duration-300 mx-4 ${focused ? "ring-purple-500" : "ring-transparent"}`}
       src={user}
+      alt="Cerrar sesión"
     />
   );
 }

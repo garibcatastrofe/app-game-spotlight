@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { api, UserSettings } from "../../shared/services/api";
-import { Check, Shield, Tv, Type, Languages, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Check, Shield, Tv, Type, Languages, AlertCircle, LogOut } from "lucide-react";
 
 export function SettingsView() {
+  const navigate = useNavigate();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
@@ -128,7 +130,43 @@ export function SettingsView() {
           ]}
           onSelect={(val) => handleUpdate("idioma", val)}
         />
+
+        {/* Logout */}
+        <SettingLogoutRow
+          focusKey="SETTING_LOGOUT"
+          onLogout={async () => {
+            await api.logout();
+            navigate("/");
+          }}
+        />
       </div>
+    </div>
+  );
+}
+
+function SettingLogoutRow({ focusKey, onLogout }: { focusKey: string; onLogout: () => void }) {
+  const { ref, focused } = useFocusable({
+    focusKey,
+    onEnterPress: () => onLogout(),
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={`flex items-center justify-between p-6 bg-slate-900 border rounded-2xl transition-all duration-200 outline-none select-none ${
+        focused ? "border-red-500 ring-4 ring-red-500/20 bg-red-950/30 scale-[1.01]" : "border-slate-800"
+      }`}
+    >
+      <div className="flex gap-4 items-center">
+        <div className="p-3 bg-red-950/60 rounded-xl">
+          <LogOut className="size-6 text-red-400" />
+        </div>
+        <div>
+          <h3 className="font-bold text-lg text-white leading-tight">Cerrar Sesión</h3>
+          <p className="text-slate-400 text-sm mt-1">Vuelve a la pantalla de inicio de sesión.</p>
+        </div>
+      </div>
+      <span className="text-red-400 font-bold text-sm uppercase tracking-wider">Salir</span>
     </div>
   );
 }

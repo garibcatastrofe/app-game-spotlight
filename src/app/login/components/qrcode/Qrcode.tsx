@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../../../shared/services/api";
+import { api, setToken } from "../../../../shared/services/api";
 
 export function QrCode() {
   const navigate = useNavigate();
@@ -31,6 +31,7 @@ export function QrCode() {
               const check = await api.checkQrStatus(qrData.codigo);
               if (isMounted) {
                 if (check.estado === "aprobado") {
+                  if (check.token) setToken(check.token);
                   setStatus("aprobado");
                   clearInterval(pollInterval);
                   // Simulate brief success delay before redirecting

@@ -45,7 +45,7 @@ export function FavoritesView() {
 
   const handleRemoveFavorite = async (gameId: string) => {
     try {
-      await api.toggleFavorite(gameId);
+      await api.toggleFavorite(gameId, true);
       setFavorites((prev) => prev.filter((g) => g.idJuego !== gameId));
     } catch (err) {
       console.error(err);

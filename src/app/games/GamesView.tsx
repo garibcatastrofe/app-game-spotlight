@@ -51,7 +51,7 @@ export function GamesView() {
   const handleToggleFavorite = async (e: React.MouseEvent | undefined, gameId: string) => {
     if (e) e.stopPropagation();
     try {
-      const res = await api.toggleFavorite(gameId);
+      const res = await api.toggleFavorite(gameId, favorites.includes(gameId));
       if (res.favorited) {
         setFavorites((prev) => [...prev, gameId]);
       } else {

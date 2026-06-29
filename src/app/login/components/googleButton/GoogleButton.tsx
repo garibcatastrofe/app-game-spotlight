@@ -1,18 +1,15 @@
 import { GoogleIcon } from "../../icons/google/GoogleIcon";
-import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 
 export function GoogleButton() {
-  const { ref, focused } = useFocusable();
-
   return (
-    <button
-      ref={ref}
-      className={`p-4 mb-4 rounded-xl font-semibold text-2xl flex items-center justify-center border-[3px] bg-slate-700/50 border-slate-600 ring-4 transition-all duration-300 ${focused ? "ring-purple-500" : "ring-transparent"}`}
-    >
+    <div className="relative p-4 mb-4 rounded-xl font-semibold text-2xl flex items-center justify-center border-[3px] bg-slate-700/30 border-slate-600 opacity-50 cursor-not-allowed select-none">
       <div className="w-10 h-10 mr-4 min-w-10 min-h-10">
         <GoogleIcon />
       </div>
       <p>INICIAR SESIÓN CON GOOGLE</p>
-    </button>
+      <span className="absolute -top-2 -right-2 bg-slate-900 text-[10px] font-black text-purple-300 border border-purple-500/60 px-2 py-0.5 rounded-full uppercase tracking-wider">
+        Próximamente
+      </span>
+    </div>
   );
 }
