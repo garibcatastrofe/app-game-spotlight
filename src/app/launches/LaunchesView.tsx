@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, UpcomingLaunch } from "../../shared/services/api";
 import { Calendar, Bell, BookmarkCheck } from "lucide-react";
 
 export function LaunchesView() {
   const [launches, setLaunches] = useState<UpcomingLaunch[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const delayedFocus = useDelayedFocus();
 
   const { ref: containerRef } = useFocusable({
     focusKey: "LAUNCHES_CONTAINER",
@@ -19,11 +22,7 @@ export function LaunchesView() {
         if (isMounted) {
           setLaunches(data);
           setLoading(false);
-          if (data.length > 0) {
-            setTimeout(() => {
-              setFocus(`LAUNCH_RESERVE_BTN_${data[0].idLanzamiento}`);
-            }, 100);
-          }
+          if (data.length > 0) delayedFocus(`LAUNCH_RESERVE_BTN_${data[0].idLanzamiento}`);
         }
       } catch (err) {
         console.error(err);
@@ -63,7 +62,7 @@ export function LaunchesView() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6 p-8 overflow-y-auto w-full">
+    <div className="flex flex-col gap-6 p-8 w-full">
       <div>
         <h1 className="text-4xl font-black text-white tracking-tight uppercase">Próximos Lanzamientos</h1>
         <p className="text-slate-400 text-sm mt-1">Sé el primero en jugar. Reserva y recibe notificaciones instantáneas el día del lanzamiento.</p>
@@ -112,6 +111,7 @@ function LaunchRowCard({ launch, onReserve }: LaunchRowCardProps) {
   return (
     <div
       ref={cardRef}
+      tabIndex={-1}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex h-60 items-center transition-all duration-300 relative outline-none select-none ${
         cardFocused ? "border-slate-700 bg-slate-850/80" : "border-slate-800"
       }`}

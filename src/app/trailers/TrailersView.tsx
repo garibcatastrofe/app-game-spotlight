@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, Trailer } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Play, Clock, Eye } from "lucide-react";
@@ -8,6 +9,8 @@ export function TrailersView() {
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const delayedFocus = useDelayedFocus();
 
   const { ref: containerRef } = useFocusable({
     focusKey: "TRAILERS_GRID_CONTAINER",
@@ -21,11 +24,7 @@ export function TrailersView() {
         if (isMounted) {
           setTrailers(data);
           setLoading(false);
-          if (data.length > 0) {
-            setTimeout(() => {
-              setFocus(`TRAILER_GRID_CARD_${data[0].idTrailer}`);
-            }, 100);
-          }
+          if (data.length > 0) delayedFocus(`TRAILER_GRID_CARD_${data[0].idTrailer}`);
         }
       } catch (err) {
         console.error(err);
@@ -47,7 +46,7 @@ export function TrailersView() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6 p-8 overflow-y-auto w-full">
+    <div className="flex flex-col gap-6 p-8 w-full">
       <div>
         <h1 className="text-4xl font-black text-white tracking-tight uppercase">Trailers Exclusivos</h1>
         <p className="text-slate-400 text-sm mt-1">Disfruta de los últimos avances de tus videojuegos favoritos en calidad premium.</p>
@@ -72,11 +71,7 @@ export function TrailersView() {
           title={`${selectedTrailer.juego?.titulo || "Video"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            setTimeout(() => {
-              if (trailers.length > 0) {
-                setFocus(`TRAILER_GRID_CARD_${trailers[0].idTrailer}`);
-              }
-            }, 100);
+            if (trailers.length > 0) delayedFocus(`TRAILER_GRID_CARD_${trailers[0].idTrailer}`);
           }}
         />
       )}
@@ -104,6 +99,7 @@ function TrailerGridCard({ trailer, onPlay }: TrailerGridCardProps) {
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"

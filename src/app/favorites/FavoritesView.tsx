@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, Game, Trailer } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Star, Play, HeartCrack } from "lucide-react";
@@ -9,6 +10,8 @@ export function FavoritesView() {
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const delayedFocus = useDelayedFocus();
 
   const { ref: containerRef } = useFocusable({
     focusKey: "FAVORITES_GRID_CONTAINER",
@@ -26,11 +29,7 @@ export function FavoritesView() {
           setFavorites(favsData);
           setTrailers(trailersData);
           setLoading(false);
-          if (favsData.length > 0) {
-            setTimeout(() => {
-              setFocus(`FAV_CARD_${favsData[0].idJuego}`);
-            }, 100);
-          }
+          if (favsData.length > 0) delayedFocus(`FAV_CARD_${favsData[0].idJuego}`);
         }
       } catch (err) {
         console.error(err);
@@ -75,7 +74,7 @@ export function FavoritesView() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6 p-8 overflow-y-auto w-full">
+    <div className="flex flex-col gap-6 p-8 w-full">
       <div>
         <h1 className="text-4xl font-black text-white tracking-tight uppercase">Mi Lista / Favoritos</h1>
         <p className="text-slate-400 text-sm mt-1">Tus videojuegos marcados como favoritos para acceso rápido.</p>
@@ -109,11 +108,7 @@ export function FavoritesView() {
           title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            setTimeout(() => {
-              if (favorites.length > 0) {
-                setFocus(`FAV_CARD_${favorites[0].idJuego}`);
-              }
-            }, 100);
+            if (favorites.length > 0) delayedFocus(`FAV_CARD_${favorites[0].idJuego}`);
           }}
         />
       )}
@@ -136,6 +131,7 @@ function FavoriteCard({ game, onRemove, onPlay }: FavoriteCardProps) {
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"

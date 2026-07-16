@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, Game, Trailer, UpcomingLaunch } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Play, Plus, Check, Star } from "lucide-react";
@@ -13,6 +14,8 @@ export function Home() {
   const [featuredTrailer, setFeaturedTrailer] = useState<Trailer | null>(null);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const delayedFocus = useDelayedFocus();
 
   // Focus parent container
   const { ref: containerRef } = useFocusable({
@@ -46,10 +49,7 @@ export function Home() {
           }
 
           setLoading(false);
-          // Set initial focus to the featured play button on banner
-          setTimeout(() => {
-            setFocus("BANNER_PLAY_BTN");
-          }, 100);
+          delayedFocus("BANNER_PLAY_BTN");
         }
       } catch (err) {
         console.error("Error loading home page data:", err);
@@ -90,7 +90,7 @@ export function Home() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col h-full overflow-y-auto w-full select-none"
+      className="flex flex-col w-full select-none"
     >
       {/* Banner / Hero Section with Loop Video */}
       {featuredGame && (
@@ -162,9 +162,7 @@ export function Home() {
           title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            setTimeout(() => {
-              setFocus("BANNER_PLAY_BTN");
-            }, 100);
+            delayedFocus("BANNER_PLAY_BTN");
           }}
         />
       )}
@@ -279,6 +277,7 @@ function TrailerCard({ trailer, onPlay }: { trailer: Trailer; onPlay: (t: Traile
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`min-w-[18rem] w-72 h-44 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
         focused ? "border-purple-500 ring-4 ring-purple-500/30 scale-105" : "border-slate-800"
       }`}
@@ -322,6 +321,7 @@ function GameRowCard({ game, isFavorite, onToggleFavorite, onPlay }: { game: Gam
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`min-w-[10rem] w-40 h-60 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
         focused ? "border-purple-500 ring-4 ring-purple-500/30 scale-105" : "border-slate-800"
       }`}
@@ -364,6 +364,7 @@ function LaunchRowMiniCard({ launch }: { launch: UpcomingLaunch }) {
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`min-w-[16rem] w-64 h-36 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
         focused ? "border-purple-500 ring-4 ring-purple-500/30 scale-105" : "border-slate-800"
       }`}

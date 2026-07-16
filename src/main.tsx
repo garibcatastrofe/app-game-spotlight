@@ -3,7 +3,7 @@ import "./index.css";
 import App from "./App";
 import { init } from "@noriginmedia/norigin-spatial-navigation";
 
-init();
+init({ shouldFocusDOMNode: true });
 
 const root = document.getElementById("root");
 

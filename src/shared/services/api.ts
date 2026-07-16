@@ -93,6 +93,45 @@ export interface Reserva {
   fechaReserva: string;
 }
 
+export interface Noticia {
+  idNoticia: string;
+  titulo: string;
+  slug: string;
+  resumen: string | null;
+  contenido: string;
+  imagenPortada: string | null;
+  fechaPublicacion: string | null;
+  autorId: string | null;
+  destacada: boolean;
+  autor?: { nombre: string; username: string } | null;
+}
+
+export interface Genero {
+  idGenero: string;
+  nombre: string;
+  descripcion: string | null;
+  iconoUrl: string | null;
+}
+
+export interface Plataforma {
+  idPlataforma: string;
+  nombre: string;
+  tipo: string | null;
+  iconoUrl: string | null;
+}
+
+export interface Notificacion {
+  idNotificacion: string;
+  titulo: string;
+  mensaje: string;
+  tipo: string | null;
+  leida: boolean;
+  fechaCreacion: string;
+  fechaLectura: string | null;
+  entidad: string | null;
+  entidadId: string | null;
+}
+
 // =========================================================================
 // Fetch helper — injects auth token when present
 // =========================================================================
@@ -222,8 +261,12 @@ export const api = {
   // Games
   // =====================
 
-  getGames: async (): Promise<Game[]> => {
-    const response = await apiFetch<{ data: Game[] }>(`${API_BASE_URL}/juegos?page=1&limit=20`, {});
+  getGames: async (params?: { search?: string; generoId?: string; plataformaId?: string; limit?: number }): Promise<Game[]> => {
+    const qs = new URLSearchParams({ page: "1", limit: String(params?.limit ?? 20) });
+    if (params?.search) qs.set("search", params.search);
+    if (params?.generoId) qs.set("generoId", params.generoId);
+    if (params?.plataformaId) qs.set("plataformaId", params.plataformaId);
+    const response = await apiFetch<{ data: Game[] }>(`${API_BASE_URL}/juegos?${qs}`, {});
     return response.data || [];
   },
 
@@ -237,7 +280,12 @@ export const api = {
 
   getTrailers: async (): Promise<Trailer[]> => {
     const response = await apiFetch<{ data: Trailer[] }>(`${API_BASE_URL}/trailers`, {});
-    return response.data || [];
+    const seen = new Set<string>();
+    return (response.data || []).filter((t) => {
+      if (seen.has(t.idTrailer)) return false;
+      seen.add(t.idTrailer);
+      return true;
+    });
   },
 
   // =====================
@@ -328,5 +376,43 @@ export const api = {
       });
       return { status: "success", favorited: true };
     }
+  },
+
+  // =====================
+  // Noticias
+  // =====================
+
+  getNoticias: async (): Promise<Noticia[]> => {
+    const response = await apiFetch<{ data: Noticia[] }>(`${API_BASE_URL}/noticias?page=1&limit=20`, {});
+    return response.data || [];
+  },
+
+  // =====================
+  // Catálogos
+  // =====================
+
+  getGeneros: async (): Promise<Genero[]> => {
+    return apiFetch<Genero[]>(`${API_BASE_URL}/catalogs/generos`, {});
+  },
+
+  getPlataformas: async (): Promise<Plataforma[]> => {
+    return apiFetch<Plataforma[]>(`${API_BASE_URL}/catalogs/plataformas`, {});
+  },
+
+  // =====================
+  // Notificaciones
+  // =====================
+
+  getNotifications: async (): Promise<Notificacion[]> => {
+    const response = await apiFetch<{ data: Notificacion[] }>(`${API_BASE_URL}/me/notificaciones`, {});
+    return response.data || [];
+  },
+
+  markNotificationRead: async (id: string): Promise<void> => {
+    await apiFetch(`${API_BASE_URL}/me/notificaciones/${id}/read`, { method: "PATCH" });
+  },
+
+  markAllNotificationsRead: async (): Promise<void> => {
+    await apiFetch(`${API_BASE_URL}/me/notificaciones/read-all`, { method: "PATCH" });
   },
 };

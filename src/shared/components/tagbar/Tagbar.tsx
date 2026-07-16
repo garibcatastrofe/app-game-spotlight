@@ -49,7 +49,7 @@ function TagPill({ tag }: { tag: TagItem }) {
     focusKey: `TAG_PILL_${tag.id}`,
     onEnterPress: () => {
       // Navigate to games catalog (could pass genre state)
-      navigate("/games");
+      navigate("/genres");
     },
   });
 

@@ -2,28 +2,28 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, Genero } from "../../shared/services/api";
-import { Gamepad2 } from "lucide-react";
+import { api, Plataforma } from "../../shared/services/api";
+import { TvMinimal } from "lucide-react";
 
-export function GenresView() {
-  const [generos, setGeneros] = useState<Genero[]>([]);
+export function PlatformsView() {
+  const [plataformas, setPlataformas] = useState<Plataforma[]>([]);
   const [loading, setLoading] = useState(true);
 
   const delayedFocus = useDelayedFocus();
 
   const { ref: containerRef } = useFocusable({
-    focusKey: "GENRES_CONTAINER",
+    focusKey: "PLATFORMS_CONTAINER",
   });
 
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
       try {
-        const data = await api.getGeneros();
+        const data = await api.getPlataformas();
         if (isMounted) {
-          setGeneros(data);
+          setPlataformas(data);
           setLoading(false);
-          if (data.length > 0) delayedFocus(`GENRE_CARD_${data[0].idGenero}`);
+          if (data.length > 0) delayedFocus(`PLATFORM_CARD_${data[0].idPlataforma}`);
         }
       } catch (err) {
         console.error(err);
@@ -45,27 +45,27 @@ export function GenresView() {
   return (
     <div className="flex flex-col gap-6 p-8 w-full">
       <div>
-        <h1 className="text-4xl font-black text-white tracking-tight uppercase">Géneros</h1>
-        <p className="text-slate-400 text-sm mt-1">Selecciona un género para filtrar el catálogo de juegos.</p>
+        <h1 className="text-4xl font-black text-white tracking-tight uppercase">Plataformas</h1>
+        <p className="text-slate-400 text-sm mt-1">Selecciona una plataforma para filtrar el catálogo de juegos.</p>
       </div>
 
       <div ref={containerRef} className="grid grid-cols-4 gap-6 pb-24">
-        {generos.map((genero) => (
-          <GeneroCard key={genero.idGenero} genero={genero} />
+        {plataformas.map((plataforma) => (
+          <PlataformaCard key={plataforma.idPlataforma} plataforma={plataforma} />
         ))}
-        {generos.length === 0 && (
-          <p className="col-span-4 text-slate-500 text-center py-16">No hay géneros disponibles.</p>
+        {plataformas.length === 0 && (
+          <p className="col-span-4 text-slate-500 text-center py-16">No hay plataformas disponibles.</p>
         )}
       </div>
     </div>
   );
 }
 
-function GeneroCard({ genero }: { genero: Genero }) {
+function PlataformaCard({ plataforma }: { plataforma: Plataforma }) {
   const navigate = useNavigate();
   const { ref, focused } = useFocusable({
-    focusKey: `GENRE_CARD_${genero.idGenero}`,
-    onEnterPress: () => navigate(`/games?generoId=${genero.idGenero}`),
+    focusKey: `PLATFORM_CARD_${plataforma.idPlataforma}`,
+    onEnterPress: () => navigate(`/games?plataformaId=${plataforma.idPlataforma}`),
   });
 
   return (
@@ -78,16 +78,16 @@ function GeneroCard({ genero }: { genero: Genero }) {
           : "border-slate-800"
       }`}
     >
-      {genero.iconoUrl ? (
-        <img src={genero.iconoUrl} alt={genero.nombre} className="w-16 h-16 object-contain" />
+      {plataforma.iconoUrl ? (
+        <img src={plataforma.iconoUrl} alt={plataforma.nombre} className="w-16 h-16 object-contain" />
       ) : (
         <div className={`p-4 rounded-full ${focused ? "bg-purple-600" : "bg-slate-800"} transition-colors duration-300`}>
-          <Gamepad2 className="size-8 text-white" />
+          <TvMinimal className="size-8 text-white" />
         </div>
       )}
-      <p className="font-bold text-lg text-white text-center">{genero.nombre}</p>
-      {genero.descripcion && (
-        <p className="text-xs text-slate-400 text-center line-clamp-2">{genero.descripcion}</p>
+      <p className="font-bold text-lg text-white text-center">{plataforma.nombre}</p>
+      {plataforma.tipo && (
+        <span className="text-xs text-slate-400 border border-slate-700 rounded-full px-3 py-1">{plataforma.tipo}</span>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, UserSettings } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
 import { Check, Shield, Tv, Type, Languages, AlertCircle, LogOut } from "lucide-react";
@@ -9,6 +10,8 @@ export function SettingsView() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const delayedFocus = useDelayedFocus();
 
   const { ref: containerRef } = useFocusable({
     focusKey: "SETTINGS_CONTAINER",
@@ -22,9 +25,7 @@ export function SettingsView() {
         if (isMounted) {
           setSettings(data);
           setLoading(false);
-          setTimeout(() => {
-            setFocus("SETTING_PARENTAL");
-          }, 100);
+          delayedFocus("SETTING_PARENTAL");
         }
       } catch (err) {
         console.error("Error loading settings:", err);
@@ -60,7 +61,7 @@ export function SettingsView() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6 p-8 overflow-y-auto w-full max-w-4xl">
+    <div className="flex flex-col gap-6 p-8 w-full max-w-4xl">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-black text-white tracking-tight uppercase">Ajustes del Sistema</h1>
@@ -153,6 +154,7 @@ function SettingLogoutRow({ focusKey, onLogout }: { focusKey: string; onLogout: 
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`flex items-center justify-between p-6 bg-slate-900 border rounded-2xl transition-all duration-200 outline-none select-none ${
         focused ? "border-red-500 ring-4 ring-red-500/20 bg-red-950/30 scale-[1.01]" : "border-slate-800"
       }`}
@@ -189,6 +191,7 @@ function SettingToggleRow({ focusKey, icon, title, description, active, onToggle
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`flex items-center justify-between p-6 bg-slate-900 border rounded-2xl transition-all duration-200 outline-none select-none ${
         focused ? "border-purple-500 ring-4 ring-purple-500/20 bg-slate-850/60 scale-[1.01]" : "border-slate-800"
       }`}
@@ -230,6 +233,7 @@ function SettingOptionRow({ focusKey, icon, title, description, currentValue, op
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`flex flex-col gap-4 p-6 bg-slate-900 border rounded-2xl transition-all duration-200 outline-none select-none ${
         focused ? "border-purple-500 ring-4 ring-purple-500/20 bg-slate-850/60 scale-[1.01]" : "border-slate-800"
       }`}

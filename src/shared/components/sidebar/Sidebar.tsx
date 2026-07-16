@@ -7,6 +7,9 @@ import {
   TvMinimal,
   Heart,
   Settings,
+  Newspaper,
+  Search,
+  Bell,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
@@ -36,6 +39,21 @@ const links: { label: string; href: string; icon: LucideIcon }[] = [
     label: "PLATAFORMAS",
     href: "/platforms",
     icon: TvMinimal,
+  },
+  {
+    label: "NOTICIAS",
+    href: "/noticias",
+    icon: Newspaper,
+  },
+  {
+    label: "BUSCAR",
+    href: "/search",
+    icon: Search,
+  },
+  {
+    label: "NOTIFICACIONES",
+    href: "/notifications",
+    icon: Bell,
   },
   {
     label: "FAVORITOS",
@@ -77,6 +95,7 @@ function SidebarItem({
   const { pathname } = useLocation();
 
   const { ref, focused } = useFocusable({
+    focusKey: `SIDEBAR_${href}`,
     onEnterPress: () => {
       navigate(href);
     },
@@ -91,6 +110,7 @@ function SidebarItem({
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`ring-2 transition-all duration-300 py-2 px-4 rounded-xl flex items-center mb-2 ${linkClasses(href)} ${focused ? "ring-purple-500" : "ring-transparent"}`}
     >
       <Icon className="mr-4 size-6 min-w-6 min-h-6" />

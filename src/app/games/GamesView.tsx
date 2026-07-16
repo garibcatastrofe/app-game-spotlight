@@ -1,27 +1,37 @@
 import { useEffect, useState } from "react";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, Game, Trailer } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
-import { Star, Play } from "lucide-react";
+import { Star, Play, X } from "lucide-react";
 
 export function GamesView() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [games, setGames] = useState<Game[]>([]);
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Focus parent container
+  const generoId = searchParams.get("generoId") ?? undefined;
+  const plataformaId = searchParams.get("plataformaId") ?? undefined;
+  const search = searchParams.get("search") ?? undefined;
+
+  const delayedFocus = useDelayedFocus();
+
   const { ref: gridContainerRef } = useFocusable({
     focusKey: "GAMES_GRID_CONTAINER",
   });
 
   useEffect(() => {
     let isMounted = true;
+    setLoading(true);
     const loadData = async () => {
       try {
         const [gamesData, trailersData, favsData] = await Promise.all([
-          api.getGames(),
+          api.getGames({ generoId, plataformaId, search }),
           api.getTrailers(),
           api.getFavorites(),
         ]);
@@ -30,12 +40,7 @@ export function GamesView() {
           setTrailers(trailersData);
           setFavorites(favsData.map((f) => f.idJuego));
           setLoading(false);
-          // Set focus on first card once loaded
-          if (gamesData.length > 0) {
-            setTimeout(() => {
-              setFocus(`GAME_CARD_${gamesData[0].idJuego}`);
-            }, 100);
-          }
+          delayedFocus(gamesData.length > 0 ? `GAME_CARD_${gamesData[0].idJuego}` : "GAMES_CLEAR_FILTER");
         }
       } catch (err) {
         console.error(err);
@@ -46,7 +51,7 @@ export function GamesView() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [generoId, plataformaId, search]);
 
   const handleToggleFavorite = async (e: React.MouseEvent | undefined, gameId: string) => {
     if (e) e.stopPropagation();
@@ -86,28 +91,35 @@ export function GamesView() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6 p-8 overflow-y-auto w-full">
+    <div className="flex flex-col gap-6 p-8 w-full">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-black text-white tracking-tight uppercase">Catálogo de Juegos</h1>
           <p className="text-slate-400 text-sm mt-1">Explora los mejores videojuegos del mercado y reproduce sus trailers exclusivos.</p>
         </div>
+        {(generoId || plataformaId || search) && (
+          <ClearFilterButton onPress={() => navigate("/games")} />
+        )}
       </div>
 
-      <div
-        ref={gridContainerRef}
-        className="grid grid-cols-4 gap-6 pb-24"
-      >
-        {games.map((game) => (
-          <GameCard
-            key={game.idJuego}
-            game={game}
-            isFavorite={favorites.includes(game.idJuego)}
-            onToggleFavorite={() => handleToggleFavorite(undefined, game.idJuego)}
-            onPlay={() => handlePlayGameTrailer(game)}
-          />
-        ))}
-      </div>
+      {games.length === 0 ? (
+        <div className="flex flex-col items-center justify-center flex-1 gap-4 py-24">
+          <p className="text-slate-500 text-lg">Sin resultados para este filtro.</p>
+          <ClearFilterButton onPress={() => navigate("/games")} />
+        </div>
+      ) : (
+        <div ref={gridContainerRef} className="grid grid-cols-4 gap-6 pb-24">
+          {games.map((game) => (
+            <GameCard
+              key={game.idJuego}
+              game={game}
+              isFavorite={favorites.includes(game.idJuego)}
+              onToggleFavorite={() => handleToggleFavorite(undefined, game.idJuego)}
+              onPlay={() => handlePlayGameTrailer(game)}
+            />
+          ))}
+        </div>
+      )}
 
       {selectedTrailer && (
         <VideoPlayer
@@ -115,12 +127,7 @@ export function GamesView() {
           title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            // Restore focus to games list
-            setTimeout(() => {
-              if (games.length > 0) {
-                setFocus(`GAME_CARD_${games[0].idJuego}`);
-              }
-            }, 100);
+            if (games.length > 0) delayedFocus(`GAME_CARD_${games[0].idJuego}`);
           }}
         />
       )}
@@ -144,6 +151,7 @@ function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps)
   return (
     <div
       ref={ref}
+      tabIndex={-1}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"
@@ -189,5 +197,27 @@ function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps)
         <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">{game.descripcion}</p>
       </div>
     </div>
+  );
+}
+
+function ClearFilterButton({ onPress }: { onPress: () => void }) {
+  const { ref, focused } = useFocusable({
+    focusKey: "GAMES_CLEAR_FILTER",
+    onEnterPress: onPress,
+  });
+
+  return (
+    <button
+      ref={ref}
+      onClick={onPress}
+      className={`flex items-center gap-2 text-sm border rounded-full px-4 py-2 transition-all duration-200 ${
+        focused
+          ? "bg-purple-600 border-purple-500 text-white scale-105"
+          : "border-slate-700 text-slate-400"
+      }`}
+    >
+      <X className="size-4" />
+      Quitar filtro
+    </button>
   );
 }
