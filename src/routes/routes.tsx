@@ -1,6 +1,6 @@
 import { Routes, Route, HashRouter, useLocation, Outlet } from "react-router-dom";
-import { useEffect, useRef } from "react";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
+/* import { useEffect, useRef } from "react";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation"; */
 import { Login } from "../app/login/Login";
 import { Home } from "../app/home/Home";
 import { GamesView } from "../app/games/GamesView";
@@ -21,12 +21,12 @@ import { ProtectedRoute } from "./ProtectedRoute";
 const Layout: React.FC = () => {
   const { pathname } = useLocation();
   const isInLogin = pathname === "/";
-  const contentRef = useRef<HTMLDivElement>(null);
+  /* const contentRef = useRef<HTMLDivElement>(null); */
 
-  useEffect(() => {
+  /* useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0;
     setFocus(`SIDEBAR_${pathname}`);
-  }, [pathname]);
+  }, [pathname]); */
 
   return (
     <main className="flex flex-col h-screen bg-[#0c090c] text-white">
@@ -35,7 +35,7 @@ const Layout: React.FC = () => {
       <div className="flex flex-1 min-h-0">
         {!isInLogin && <Sidebar />}
 
-        <div ref={contentRef} className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto flex flex-col bg-[#0c090c]">
+        <div /* ref={contentRef} */ className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto flex flex-col bg-[#0c090c]">
           <Routes>
             <Route path="/" element={<Login />} />
             {/* Everything below requires an authenticated session */}

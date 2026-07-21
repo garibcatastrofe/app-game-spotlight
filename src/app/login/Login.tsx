@@ -5,11 +5,19 @@ import { EmailForm } from "./components/emailForm/EmailForm";
 import { GoogleButton } from "./components/googleButton/GoogleButton";
 import { PlaystationButton } from "./components/playstationButton/PlaystationButton";
 import { QrCode } from "./components/qrcode/Qrcode";
+import { api } from "../../shared/services/api";
+import { useNavigate } from "react-router-dom";
 
 export function Login() {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    setFocus("FIRST_CARD");
-  }, []);
+    if (api.isLoggedIn()) {
+      navigate("/home");
+    } else {
+      setFocus("FIRST_CARD");
+    }
+  }, [navigate]);
 
   return (
     <div className="relative flex flex-col flex-1 h-full p-6">
