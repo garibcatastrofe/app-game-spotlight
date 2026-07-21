@@ -46,7 +46,7 @@ function Tag({ tag }: { tag: TagItem }) {
       <tag.icon className="text-purple-500 size-12 min-h-12 min-w-12" />
 
       <div className="flex flex-col justify-center gap-1">
-        <p className="font-bold">{tag.label}</p>
+        <p className="font-bold text-slate-100">{tag.label}</p>
         <p className="text-sm text-slate-400 max-w-48">{tag.description}</p>
       </div>
     </div>

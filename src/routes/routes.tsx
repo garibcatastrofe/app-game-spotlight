@@ -29,7 +29,7 @@ const Layout: React.FC = () => {
   }, [pathname]); */
 
   return (
-    <main className="flex flex-col h-screen bg-[#080815] text-white">
+    <main className="flex flex-col h-screen bg-[#080815] text-slate-400">
       {!isInLogin && <Navbar />}
 
       <div className="flex flex-1 min-h-0">

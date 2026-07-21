@@ -8,6 +8,8 @@ import {
   Heart,
   Settings,
   Newspaper,
+  Search,
+  Bell,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
@@ -44,6 +46,16 @@ const links: { label: string; href: string; icon: LucideIcon }[] = [
     icon: Newspaper,
   },
   {
+    label: "BUSCAR",
+    href: "/search",
+    icon: Search,
+  },
+  {
+    label: "NOTIFICACIONES",
+    href: "/notifications",
+    icon: Bell,
+  },
+  {
     label: "FAVORITOS",
     href: "/favorites",
     icon: Heart,
@@ -57,7 +69,7 @@ const links: { label: string; href: string; icon: LucideIcon }[] = [
 
 export function Sidebar() {
   return (
-    <div className="px-6 pt-8 w-72 min-w-72">
+    <div className="px-6 pt-4 w-72 min-w-72">
       {links.map((link, index) => (
         <SidebarItem
           key={index}
@@ -92,14 +104,14 @@ function SidebarItem({
   const linkClasses = (path: string) => {
     const isActive = pathname === path || pathname?.startsWith(`${path}/`);
 
-    return `${isActive ? "bg-gradient-to-r from-purple-500 to-purple-700" : "bg-gradient-to-r from-transparent to-transparent"}`;
+    return `${isActive ? "bg-gradient-to-r from-purple-500 to-purple-700 text-white" : "bg-gradient-to-r from-transparent to-transparent text-slate-400"}`;
   };
 
   return (
     <div
       ref={ref}
       tabIndex={-1}
-      className={`ring-2 transition-all duration-300 py-2 px-4 rounded-xl flex items-center mb-2 ${linkClasses(href)} ${focused ? "ring-purple-500" : "ring-transparent"}`}
+      className={`ring-2 transition-all duration-300 py-2 px-4 rounded-xl flex items-center mb-2 outline-none ${linkClasses(href)} ${focused ? "ring-purple-500" : "ring-transparent"}`}
     >
       <Icon className="mr-4 size-6 min-w-6 min-h-6" />
       <p className="text-sm font-semibold">{label}</p>
