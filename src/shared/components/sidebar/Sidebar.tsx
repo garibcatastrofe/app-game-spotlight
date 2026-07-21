@@ -8,8 +8,6 @@ import {
   Heart,
   Settings,
   Newspaper,
-  Search,
-  Bell,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
@@ -41,19 +39,9 @@ const links: { label: string; href: string; icon: LucideIcon }[] = [
     icon: TvMinimal,
   },
   {
-    label: "NOTICIAS",
+    label: "NOVEDADES",
     href: "/noticias",
     icon: Newspaper,
-  },
-  {
-    label: "BUSCAR",
-    href: "/search",
-    icon: Search,
-  },
-  {
-    label: "NOTIFICACIONES",
-    href: "/notifications",
-    icon: Bell,
   },
   {
     label: "FAVORITOS",
