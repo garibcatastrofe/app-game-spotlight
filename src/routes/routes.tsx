@@ -29,13 +29,13 @@ const Layout: React.FC = () => {
   }, [pathname]); */
 
   return (
-    <main className="flex flex-col h-screen bg-[#0c090c] text-white">
+    <main className="flex flex-col h-screen bg-[#080815] text-white">
       {!isInLogin && <Navbar />}
 
       <div className="flex flex-1 min-h-0">
         {!isInLogin && <Sidebar />}
 
-        <div /* ref={contentRef} */ className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto flex flex-col bg-[#0c090c]">
+        <div /* ref={contentRef} */ className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto flex flex-col bg-[#080815]">
           <Routes>
             <Route path="/" element={<Login />} />
             {/* Everything below requires an authenticated session */}
