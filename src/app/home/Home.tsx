@@ -22,6 +22,8 @@ export function Home() {
     focusKey: "HOME_CONTAINER",
   });
 
+  const { ref: loadingRef } = useFocusable({ focusKey: "HOME_LOADING" });
+
   useEffect(() => {
     let isMounted = true;
     const loadHomeData = async () => {
@@ -58,7 +60,10 @@ export function Home() {
         }
       } catch (err) {
         console.error("Error loading home page data:", err);
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          delayedFocus("SIDEBAR_/home", 80);
+        }
       }
     };
 
