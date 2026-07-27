@@ -54,11 +54,6 @@ export function EmailForm() {
       {error && (
         <p className="text-red-400 text-center mt-2 text-lg font-semibold">{error}</p>
       )}
-
-      <div className="flex flex-col items-center w-full gap-1">
-        <ForgottenPassword />
-        <CreateAccount />
-      </div>
     </div>
   );
 }
@@ -166,10 +161,4 @@ function LoginButton({ loading, onSubmit }: { loading: boolean; onSubmit: () => 
   );
 }
 
-function ForgottenPassword() {
-  return <p className="text-xs underline text-slate-400">¿Olvidaste tu contraseña?</p>;
-}
 
-function CreateAccount() {
-  return <p className="text-xs underline text-slate-400">Crear cuenta</p>;
-}
