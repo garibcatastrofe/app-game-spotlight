@@ -28,7 +28,7 @@ function getUser(): { idUsuario: string; nombre: string; username?: string; corr
   }
 }
 
-function setUser(user: { idUsuario: string; nombre: string; username?: string; correo: string }): void {
+export function setUser(user: { idUsuario: string; nombre: string; username?: string; correo: string }): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
@@ -234,7 +234,7 @@ export const api = {
     }
   },
 
-  checkQrStatus: async (codigo: string): Promise<{ estado: string; token: string | null }> => {
+  checkQrStatus: async (codigo: string): Promise<{ estado: string; token: string | null; usuario?: { idUsuario: string; nombre: string; username?: string; correo: string } | null }> => {
     // ponytail: SPOT-TV6 dev-only convenience so the login screen renders
     // without a running backend. Remove when backend QR pairing lands.
     if (import.meta.env.DEV && codigo === "SPOT-TV6") {
@@ -251,7 +251,7 @@ export const api = {
       return { estado: "pendiente", token: null };
     }
 
-    return apiFetch<{ estado: string; token: string | null }>(
+    return apiFetch<{ estado: string; token: string | null; usuario?: { idUsuario: string; nombre: string; username?: string; correo: string } | null }>(
       `${API_BASE_URL}/qr-login/status/${codigo}`,
       {}
     );
