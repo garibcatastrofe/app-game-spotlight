@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import { FocusContext, useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
 import { api, Game, Trailer, UpcomingLaunch } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
@@ -297,6 +297,57 @@ function HeroBanner({
         </div>
       </div>
     </div>
+  );
+}
+
+// Row containers with FocusContext so off-screen cards stay reachable via arrow keys
+function TrailersRow({ trailers, onPlay }: { trailers: Trailer[]; onPlay: (t: Trailer) => void }) {
+  const { ref, focusKey } = useFocusable({ focusKey: "HOME_TRAILERS_ROW" });
+  return (
+    <FocusContext.Provider value={focusKey}>
+      <div ref={ref} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+        {trailers.map((t) => (
+          <TrailerCard key={t.idTrailer} trailer={t} onPlay={onPlay} />
+        ))}
+      </div>
+    </FocusContext.Provider>
+  );
+}
+
+function GamesRow({ games, favorites, onToggleFavorite, onPlay }: {
+  games: Game[];
+  favorites: string[];
+  onToggleFavorite: (id: string) => void;
+  onPlay: (g: Game) => void;
+}) {
+  const { ref, focusKey } = useFocusable({ focusKey: "HOME_GAMES_ROW" });
+  return (
+    <FocusContext.Provider value={focusKey}>
+      <div ref={ref} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+        {games.map((g) => (
+          <GameRowCard
+            key={g.idJuego}
+            game={g}
+            isFavorite={favorites.includes(g.idJuego)}
+            onToggleFavorite={() => onToggleFavorite(g.idJuego)}
+            onPlay={() => onPlay(g)}
+          />
+        ))}
+      </div>
+    </FocusContext.Provider>
+  );
+}
+
+function LaunchesRow({ launches }: { launches: UpcomingLaunch[] }) {
+  const { ref, focusKey } = useFocusable({ focusKey: "HOME_LAUNCHES_ROW" });
+  return (
+    <FocusContext.Provider value={focusKey}>
+      <div ref={ref} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+        {launches.map((l) => (
+          <LaunchRowMiniCard key={l.idLanzamiento} launch={l} />
+        ))}
+      </div>
+    </FocusContext.Provider>
   );
 }
 
