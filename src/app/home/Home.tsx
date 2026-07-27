@@ -306,6 +306,7 @@ function TrailerCard({
   const { ref, focused } = useFocusable({
     focusKey: `TRAILER_CARD_${trailer.idTrailer}`,
     onEnterPress: () => onPlay(trailer),
+    onFocus: () => ref.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }),
   });
 
   useEffect(() => {
@@ -379,6 +380,7 @@ function GameRowCard({
   const { ref, focused } = useFocusable({
     focusKey: `GAMEROW_CARD_${game.idJuego}`,
     onEnterPress: () => onPlay(),
+    onFocus: () => ref.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }),
   });
 
   useEffect(() => {
@@ -441,6 +443,7 @@ function GameRowCard({
 function LaunchRowMiniCard({ launch }: { launch: UpcomingLaunch }) {
   const { ref, focused } = useFocusable({
     focusKey: `LAUNCHROW_CARD_${launch.idLanzamiento}`,
+    onFocus: () => ref.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }),
   });
 
   useEffect(() => {
