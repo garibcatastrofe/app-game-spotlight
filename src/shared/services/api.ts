@@ -217,9 +217,9 @@ export const api = {
   // QR Login Flow (SPOT-TV6 mock is a dev-only convenience)
   // =====================
 
-  generateQrCode: async (): Promise<{ codigo: string; expiraEn: string }> => {
+  generateQrCode: async (): Promise<{ codigo: string; expiraEn: string; qrDataUrl: string; mobileUrl: string }> => {
     try {
-      return await apiFetch<{ codigo: string; expiraEn: string }>(
+      return await apiFetch<{ codigo: string; expiraEn: string; qrDataUrl: string; mobileUrl: string }>(
         `${API_BASE_URL}/qr-login/generate`,
         { method: "POST" }
       );
@@ -228,7 +228,7 @@ export const api = {
       // without a running backend. Remove when backend QR pairing lands.
       if (import.meta.env.DEV) {
         console.warn("QR generate failed, using dev mock code SPOT-TV6");
-        return { codigo: "SPOT-TV6", expiraEn: new Date(Date.now() + 5 * 60 * 1000).toISOString() };
+        return { codigo: "SPOT-TV6", expiraEn: new Date(Date.now() + 5 * 60 * 1000).toISOString(), qrDataUrl: '', mobileUrl: '' };
       }
       throw new Error("No se pudo generar el código QR");
     }

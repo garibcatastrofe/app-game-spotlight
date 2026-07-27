@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { api, setToken } from "../../../../shared/services/api";
 
 export function QrCode() {
   const navigate = useNavigate();
   const [code, setCode] = useState<string>("");
-  const [qrUrl, setQrUrl] = useState<string>("");
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [status, setStatus] = useState<string>("pendiente");
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -19,9 +20,7 @@ export function QrCode() {
         const qrData = await api.generateQrCode();
         if (isMounted) {
           setCode(qrData.codigo);
-          // Generate a real QR code using public free API
-          const mobileLink = `http://localhost:3000/approve-login?code=${qrData.codigo}`;
-          setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=0c090c&data=${encodeURIComponent(mobileLink)}`);
+          setQrDataUrl(qrData.qrDataUrl || '');
           setLoading(false);
           setStatus("pendiente");
 
@@ -41,6 +40,7 @@ export function QrCode() {
                 } else if (check.estado === "expirado") {
                   setStatus("expirado");
                   clearInterval(pollInterval);
+                  setFocus("QR_REGEN_BTN");
                 }
               }
             } catch (err) {
@@ -62,6 +62,11 @@ export function QrCode() {
     };
   }, [navigate]);
 
+  const { ref: regenRef, focused: regenFocused } = useFocusable({
+    focusKey: "QR_REGEN_BTN",
+    onEnterPress: () => window.location.reload(),
+  });
+
   return (
     <div className="flex p-6 rounded-xl border-[3px] bg-slate-700/50 border-slate-600 mb-4 items-center">
       <div className="p-2 mr-8 bg-white rounded-xl w-52 h-52 min-w-[13rem] min-h-[13rem] flex items-center justify-center relative overflow-hidden">
@@ -76,7 +81,7 @@ export function QrCode() {
             ¡Aprobado!
           </div>
         ) : (
-          <img src={qrUrl} className="w-full h-full object-contain" alt="QR Login" />
+          <img src={qrDataUrl} className="w-full h-full object-contain" alt="QR Login" />
         )}
       </div>
 
@@ -93,9 +98,10 @@ export function QrCode() {
         ) : status === "expirado" ? (
           <div>
             <p className="text-xl font-bold text-red-400">CÓDIGO EXPIRADO</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700"
+            <button
+              ref={regenRef}
+              onClick={() => window.location.reload()}
+              className={`mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 outline-none ${regenFocused ? 'ring-2 ring-purple-400' : ''}`}
             >
               Regenerar
             </button>
