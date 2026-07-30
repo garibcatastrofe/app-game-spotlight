@@ -108,6 +108,20 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
+  if (!videoUrl) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center gap-4">
+        <p className="text-slate-400 text-lg">Video no disponible</p>
+        <button
+          className="px-6 py-2 bg-purple-600 text-white rounded-xl font-bold"
+          onClick={onClose}
+        >
+          Volver
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}

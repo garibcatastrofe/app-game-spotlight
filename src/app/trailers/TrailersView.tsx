@@ -109,9 +109,12 @@ function TrailerGridCard({ trailer, onPlay }: TrailerGridCardProps) {
       {/* Thumbnail */}
       <div className="h-48 relative overflow-hidden bg-slate-950">
         <img
-          src={trailer.urlPoster}
+          src={trailer.urlPoster ?? undefined}
           alt={trailer.titulo}
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = 'none';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
         
