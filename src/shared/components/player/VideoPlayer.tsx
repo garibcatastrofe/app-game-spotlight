@@ -3,7 +3,7 @@ import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation
 import { Play, Pause, Volume2, VolumeX, X } from "lucide-react";
 
 interface VideoPlayerProps {
-  videoUrl: string;
+  videoUrl: string | null;
   title: string;
   onClose: () => void;
 }
@@ -108,20 +108,6 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
-  if (!videoUrl) {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center gap-4">
-        <p className="text-slate-400 text-lg">Video no disponible</p>
-        <button
-          className="px-6 py-2 bg-purple-600 text-white rounded-xl font-bold"
-          onClick={onClose}
-        >
-          Volver
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div
       ref={containerRef}
@@ -131,7 +117,7 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
     >
       <video
         ref={videoRef}
-        src={videoUrl}
+        src={videoUrl ?? undefined}
         className="w-full h-full object-contain"
         autoPlay
         onTimeUpdate={handleTimeUpdate}

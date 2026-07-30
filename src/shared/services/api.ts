@@ -56,8 +56,8 @@ export interface Trailer {
   idJuego: string;
   titulo: string;
   tipo: string;
-  urlVideo: string;
-  urlPoster: string;
+  urlVideo: string | null;
+  urlPoster: string | null;
   duracionSegundos: number;
   vistas: number;
   juego?: { titulo: string };

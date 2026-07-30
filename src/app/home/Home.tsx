@@ -223,7 +223,7 @@ function HeroBanner({
   return (
     <div className="h-[75vh] min-h-[500px] w-full relative overflow-hidden bg-black select-none">
       {/* Background Video Player loop / muted */}
-      {trailer ? (
+      {trailer?.urlVideo ? (
         <video
           src={trailer.urlVideo}
           className="absolute inset-0 object-cover w-full h-full opacity-60"

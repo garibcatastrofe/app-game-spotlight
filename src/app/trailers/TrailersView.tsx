@@ -65,7 +65,7 @@ export function TrailersView() {
         ))}
       </div>
 
-      {selectedTrailer && (
+      {selectedTrailer && selectedTrailer.urlVideo && (
         <VideoPlayer
           videoUrl={selectedTrailer.urlVideo}
           title={`${selectedTrailer.juego?.titulo || "Video"} — ${selectedTrailer.titulo}`}
@@ -74,6 +74,16 @@ export function TrailersView() {
             if (trailers.length > 0) delayedFocus(`TRAILER_GRID_CARD_${trailers[0].idTrailer}`);
           }}
         />
+      )}
+      {selectedTrailer && !selectedTrailer.urlVideo && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4"
+          onClick={() => {
+            setSelectedTrailer(null);
+            if (trailers.length > 0) delayedFocus(`TRAILER_GRID_CARD_${trailers[0].idTrailer}`);
+          }}>
+          <p className="text-slate-400 text-lg">Video no disponible</p>
+          <p className="text-slate-500 text-sm">Pulsa <span className="font-bold text-slate-300">BACK</span> o <span className="font-bold text-slate-300">ESC</span> para volver</p>
+        </div>
       )}
     </div>
   );
