@@ -132,6 +132,8 @@ export interface Notificacion {
   entidadId: string | null;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // =========================================================================
 // Fetch helper — injects auth token when present
 // =========================================================================
@@ -151,7 +153,11 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     }
     throw new Error(`HTTP Error: ${res.status}`);
   }
-  return await res.json();
+  console.log(`apiFetch: ${res.status} ${res.url}`);
+  const json = await res.json().catch(() => null);
+  console.log(`apiFetch response:`, json);
+  
+  return json as T;
 }
 
 // =========================================================================
@@ -264,8 +270,8 @@ export const api = {
   getGames: async (params?: { search?: string; generoId?: string; plataformaId?: string; limit?: number }): Promise<Game[]> => {
     const qs = new URLSearchParams({ page: "1", limit: String(params?.limit ?? 20) });
     if (params?.search) qs.set("search", params.search);
-    if (params?.generoId) qs.set("generoId", params.generoId);
-    if (params?.plataformaId) qs.set("plataformaId", params.plataformaId);
+    if (params?.generoId && UUID_RE.test(params.generoId)) qs.set("generoId", params.generoId);
+    if (params?.plataformaId && UUID_RE.test(params.plataformaId)) qs.set("plataformaId", params.plataformaId);
     const response = await apiFetch<{ data: Game[] }>(`${API_BASE_URL}/juegos?${qs}`, {});
     return response.data || [];
   },
@@ -279,7 +285,8 @@ export const api = {
   // =====================
 
   getTrailers: async (): Promise<Trailer[]> => {
-    const response = await apiFetch<{ data: Trailer[] }>(`${API_BASE_URL}/trailers`, {});
+    const qs = new URLSearchParams({ page: "1", limit: "100" });
+    const response = await apiFetch<{ data: Trailer[] }>(`${API_BASE_URL}/trailers?${qs}`, {});
     const seen = new Set<string>();
     return (response.data || []).filter((t) => {
       if (seen.has(t.idTrailer)) return false;
@@ -392,11 +399,15 @@ export const api = {
   // =====================
 
   getGeneros: async (): Promise<Genero[]> => {
-    return apiFetch<Genero[]>(`${API_BASE_URL}/catalogs/generos`, {});
+    const response = await apiFetch<Genero[]>(`${API_BASE_URL}/catalogs/generos`, {});
+    console.log(`getGeneros response:`, response);
+    return response
   },
 
   getPlataformas: async (): Promise<Plataforma[]> => {
-    return apiFetch<Plataforma[]>(`${API_BASE_URL}/catalogs/plataformas`, {});
+    const response = await apiFetch< Plataforma[] >(`${API_BASE_URL}/catalogs/plataformas`, {});
+    console.log(`getPlataformas response:`, response);
+    return response
   },
 
   // =====================
@@ -404,8 +415,8 @@ export const api = {
   // =====================
 
   getNotifications: async (): Promise<Notificacion[]> => {
-    const response = await apiFetch<{ data: Notificacion[] }>(`${API_BASE_URL}/me/notificaciones`, {});
-    return response.data || [];
+    const response = await apiFetch<Notificacion[] >(`${API_BASE_URL}/me/notificaciones`, {});
+    return response
   },
 
   markNotificationRead: async (id: string): Promise<void> => {

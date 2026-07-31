@@ -6,6 +6,7 @@ import { api, Genero } from "../../shared/services/api";
 import { Gamepad2 } from "lucide-react";
 
 export function GenresView() {
+  const navigate = useNavigate();
   const [generos, setGeneros] = useState<Genero[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,6 +15,17 @@ export function GenresView() {
   const { ref: containerRef } = useFocusable({
     focusKey: "GENRES_CONTAINER",
   });
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" || e.key === "Backspace") {
+        e.preventDefault();
+        navigate(-1);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [navigate]);
 
   useEffect(() => {
     let isMounted = true;

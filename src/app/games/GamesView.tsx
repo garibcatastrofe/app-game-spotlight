@@ -26,16 +26,28 @@ export function GamesView() {
   });
 
   useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" || e.key === "Backspace") {
+        e.preventDefault();
+        navigate(-1);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [navigate]);
+
+  useEffect(() => {
     let isMounted = true;
     setLoading(true);
     const loadData = async () => {
       try {
         const [gamesData, trailersData, favsData] = await Promise.all([
           api.getGames({ generoId, plataformaId, search }),
-          api.getTrailers(),
-          api.getFavorites(),
+          api.getTrailers().catch(() => [] as Trailer[]),
+          api.getFavorites().catch(() => [] as { idJuego: string }[]),
         ]);
         if (isMounted) {
+          console.log(`GamesView loaded data:`, { gamesData, trailersData, favsData });
           setGames(gamesData);
           setTrailers(trailersData);
           setFavorites(favsData.map((f) => f.idJuego));
@@ -193,7 +205,7 @@ function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps)
         <div className="flex justify-between items-start gap-1">
           <h3 className="font-bold text-lg text-white leading-tight line-clamp-1">{game.titulo}</h3>
         </div>
-        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento.split("-")[0]}</p>
+        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento?.split("-")[0] ?? ""}</p>
         <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">{game.descripcion}</p>
       </div>
     </div>

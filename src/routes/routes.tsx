@@ -15,7 +15,6 @@ import { SearchView } from "../app/search/SearchView";
 import { NotificationsView } from "../app/notifications/NotificationsView";
 import { Navbar } from "../shared/components/navbar/Navbar";
 import { Sidebar } from "../shared/components/sidebar/Sidebar";
-import { Tagbar } from "../shared/components/tagbar/Tagbar";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 const Layout: React.FC = () => {
@@ -59,8 +58,6 @@ const Layout: React.FC = () => {
           </Routes>
         </div>
       </div>
-
-      {!isInLogin && <Tagbar />}
     </main>
   );
 };
