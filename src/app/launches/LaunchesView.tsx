@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, UpcomingLaunch } from "../../shared/services/api";
+import { api, applyParentalFilterToLaunches, UpcomingLaunch } from "../../shared/services/api";
 import { Calendar, Bell, BookmarkCheck } from "lucide-react";
 
 export function LaunchesView() {
@@ -18,11 +18,15 @@ export function LaunchesView() {
     let isMounted = true;
     const loadLaunches = async () => {
       try {
-        const data = await api.getUpcomingLaunches();
+        const [data, settingsData] = await Promise.all([
+          api.getUpcomingLaunches(),
+          api.getSettings().catch(() => null),
+        ]);
         if (isMounted) {
-          setLaunches(data);
+          const filtered = applyParentalFilterToLaunches(data, settingsData);
+          setLaunches(filtered);
           setLoading(false);
-          if (data.length > 0) delayedFocus(`LAUNCH_RESERVE_BTN_${data[0].idLanzamiento}`);
+          delayedFocus(filtered.length > 0 ? `LAUNCH_RESERVE_BTN_${filtered[0].idLanzamiento}` : "SIDEBAR_/launches");
         }
       } catch (err) {
         console.error(err);
@@ -121,7 +125,7 @@ function LaunchRowCard({ launch, onReserve }: LaunchRowCardProps) {
         <img
           src={launch.bannerUrl || launch.juego.bannerUrl}
           alt={launch.juego.titulo}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/90" />
       </div>
@@ -154,7 +158,7 @@ function LaunchRowCard({ launch, onReserve }: LaunchRowCardProps) {
                   ? "bg-emerald-600 text-white border border-emerald-500"
                   : reserveBtnFocused
                   ? "bg-purple-500 text-white scale-105 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-750"
+                  : "bg-slate-800 text-slate-300"
               }`}
             >
               {launch.reservado ? (

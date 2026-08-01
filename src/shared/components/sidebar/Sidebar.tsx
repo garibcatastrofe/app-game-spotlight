@@ -12,7 +12,10 @@ import {
   Bell,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import {
+  FocusContext,
+  useFocusable,
+} from "@noriginmedia/norigin-spatial-navigation";
 
 const links: { label: string; href: string; icon: LucideIcon }[] = [
   {
@@ -68,17 +71,20 @@ const links: { label: string; href: string; icon: LucideIcon }[] = [
 ];
 
 export function Sidebar() {
+  const { ref, focusKey } = useFocusable({ focusKey: "SIDEBAR_CONTAINER" });
   return (
-    <div className="px-6 pt-4 w-72 min-w-72">
-      {links.map((link, index) => (
-        <SidebarItem
-          key={index}
-          label={link.label}
-          href={link.href}
-          icon={link.icon}
-        />
-      ))}
-    </div>
+    <FocusContext.Provider value={focusKey}>
+      <div ref={ref} className="px-6 pt-4 w-72 min-w-72">
+        {links.map((link, index) => (
+          <SidebarItem
+            key={index}
+            label={link.label}
+            href={link.href}
+            icon={link.icon}
+          />
+        ))}
+      </div>
+    </FocusContext.Provider>
   );
 }
 

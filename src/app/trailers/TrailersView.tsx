@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, Trailer } from "../../shared/services/api";
+import { api, applyParentalFilter, applyParentalFilterToTrailers, Trailer } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Play, Clock, Eye } from "lucide-react";
 
@@ -20,11 +20,20 @@ export function TrailersView() {
     let isMounted = true;
     const loadTrailers = async () => {
       try {
-        const data = await api.getTrailers();
+        const [trailersData, gamesData, settingsData] = await Promise.all([
+          api.getTrailers(),
+          api.getGames(),
+          api.getSettings().catch(() => null),
+        ]);
+        const filteredGames = applyParentalFilter(gamesData, settingsData);
+        const allowedIds = settingsData?.controlParental
+          ? new Set(filteredGames.map((g) => g.idJuego))
+          : new Set<string>();
+        const filtered = applyParentalFilterToTrailers(trailersData, allowedIds);
         if (isMounted) {
-          setTrailers(data);
+          setTrailers(filtered);
           setLoading(false);
-          if (data.length > 0) delayedFocus(`TRAILER_GRID_CARD_${data[0].idTrailer}`);
+          delayedFocus(filtered.length > 0 ? `TRAILER_GRID_CARD_${filtered[0].idTrailer}` : "SIDEBAR_/trailers");
         }
       } catch (err) {
         console.error(err);
@@ -71,16 +80,21 @@ export function TrailersView() {
           title={`${selectedTrailer.juego?.titulo || "Video"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            if (trailers.length > 0) delayedFocus(`TRAILER_GRID_CARD_${trailers[0].idTrailer}`);
+            delayedFocus(trailers.length > 0 ? `TRAILER_GRID_CARD_${trailers[0].idTrailer}` : "SIDEBAR_/trailers");
           }}
         />
       )}
       {selectedTrailer && !selectedTrailer.urlVideo && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4"
-          onClick={() => {
-            setSelectedTrailer(null);
-            if (trailers.length > 0) delayedFocus(`TRAILER_GRID_CARD_${trailers[0].idTrailer}`);
-          }}>
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4"
+          onKeyDown={(e) => {
+            if (e.key === "Escape" || e.key === "Backspace") {
+              setSelectedTrailer(null);
+              delayedFocus(trailers.length > 0 ? `TRAILER_GRID_CARD_${trailers[0].idTrailer}` : "SIDEBAR_/trailers");
+            }
+          }}
+          tabIndex={-1}
+        >
           <p className="text-slate-400 text-lg">Video no disponible</p>
           <p className="text-slate-500 text-sm">Pulsa <span className="font-bold text-slate-300">BACK</span> o <span className="font-bold text-slate-300">ESC</span> para volver</p>
         </div>
@@ -121,7 +135,7 @@ function TrailerGridCard({ trailer, onPlay }: TrailerGridCardProps) {
         <img
           src={trailer.urlPoster ?? undefined}
           alt={trailer.titulo}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = 'none';
           }}

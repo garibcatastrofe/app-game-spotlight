@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FocusContext, useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, Game, Trailer, UpcomingLaunch } from "../../shared/services/api";
+import { api, applyParentalFilter, applyParentalFilterToLaunches, applyParentalFilterToTrailers, Game, Trailer, UpcomingLaunch } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Play, Plus, Check, Star } from "lucide-react";
 
@@ -17,46 +17,53 @@ export function Home() {
 
   const delayedFocus = useDelayedFocus();
 
-  // Focus parent container
-  const { ref: containerRef } = useFocusable({
+  const { ref: containerRef, focusKey: homeFocusKey } = useFocusable({
     focusKey: "HOME_CONTAINER",
   });
-
-  const { ref: loadingRef } = useFocusable({ focusKey: "HOME_LOADING" });
 
   useEffect(() => {
     let isMounted = true;
     const loadHomeData = async () => {
       try {
-        const [gamesData, trailersData, launchesData, favsData] =
+        const [gamesData, trailersData, launchesData, favsData, settingsData] =
           await Promise.all([
             api.getGames(),
             api.getTrailers(),
             api.getUpcomingLaunches(),
             api.getFavorites(),
+            api.getSettings().catch(() => null),
           ]);
 
         if (isMounted) {
-          setGames(gamesData);
-          setTrailers(trailersData);
-          setLaunches(launchesData);
+          const filteredGames = applyParentalFilter(gamesData, settingsData);
+          const allowedIds = settingsData?.controlParental
+            ? new Set(filteredGames.map((g) => g.idJuego))
+            : new Set<string>();
+          setGames(filteredGames);
+          setTrailers(applyParentalFilterToTrailers(trailersData, allowedIds));
+          setLaunches(applyParentalFilterToLaunches(launchesData, settingsData));
           setFavorites(favsData.map((f) => f.idJuego));
 
-          // Determine featured game (Elden Ring as default seed, or any featured)
           const featured =
-            gamesData.find((g) => g.destacado) || gamesData[0] || null;
+            filteredGames.find((g) => g.destacado) || filteredGames[0] || null;
           setFeaturedGame(featured);
 
+          let trailer: Trailer | null = null;
           if (featured) {
-            const trailer =
-              trailersData.find((t) => t.idJuego === featured.idJuego) ||
-              trailersData[0] ||
+            const filteredTrailers = applyParentalFilterToTrailers(trailersData, allowedIds);
+            trailer =
+              filteredTrailers.find((t) => t.idJuego === featured.idJuego) ||
+              filteredTrailers[0] ||
               null;
             setFeaturedTrailer(trailer);
           }
 
           setLoading(false);
-          delayedFocus("BANNER_PLAY_BTN");
+          delayedFocus(
+            featured && trailer ? "BANNER_PLAY_BTN" :
+            featured ? "BANNER_LIST_BTN" :
+            "SIDEBAR_/home"
+          );
         }
       } catch (err) {
         console.error("Error loading home page data:", err);
@@ -73,6 +80,16 @@ export function Home() {
       isMounted = false;
     };
   }, []);
+
+  const handlePlayGame = (g: Game) => {
+    const matchingTrailer = trailers.find((t) => t.idJuego === g.idJuego) || {
+      idTrailer: "temp", idJuego: g.idJuego,
+      titulo: `Tráiler de ${g.titulo}`, tipo: "Gameplay",
+      urlVideo: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4",
+      urlPoster: g.imagenPortada, duracionSegundos: 120, vistas: 1000,
+    };
+    setSelectedTrailer(matchingTrailer as Trailer);
+  };
 
   const handleToggleFavorite = async (gameId: string) => {
     try {
@@ -100,94 +117,64 @@ export function Home() {
     : false;
 
   return (
-    <div ref={containerRef} className="flex flex-col w-full select-none">
-      {/* Banner / Hero Section with Loop Video */}
-      {featuredGame && (
-        <HeroBanner
-          game={featuredGame}
-          trailer={featuredTrailer}
-          isFavorite={isFeaturedFavorite}
-          onToggleFavorite={() => handleToggleFavorite(featuredGame.idJuego)}
-          onPlayTrailer={(t) => setSelectedTrailer(t)}
-        />
-      )}
+    <FocusContext.Provider value={homeFocusKey}>
+      <div ref={containerRef} className="flex flex-col w-full select-none">
+        {/* Banner / Hero Section with Loop Video */}
+        {featuredGame && (
+          <HeroBanner
+            game={featuredGame}
+            trailer={featuredTrailer}
+            isFavorite={isFeaturedFavorite}
+            onToggleFavorite={() => handleToggleFavorite(featuredGame.idJuego)}
+            onPlayTrailer={(t) => setSelectedTrailer(t)}
+          />
+        )}
 
-      {/* Rows Container */}
-      <div className="flex flex-col gap-8 px-8 py-6 bg-gradient-to-t from-[#0c090c] to-transparent -mt-20 relative z-10">
-        {/* Row 1: Trailers */}
-        <div className="flex flex-col">
-          <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
-            Trailers Recientes
-          </h2>
-          <div className="flex gap-4 p-4 overflow-x-auto">
-            {trailers.map((t) => (
-              <TrailerCard
-                key={t.idTrailer}
-                trailer={t}
-                onPlay={(tr) => setSelectedTrailer(tr)}
-              />
-            ))}
+        {/* Rows Container */}
+        <div className="flex flex-col gap-8 px-8 py-6 bg-gradient-to-t from-[#0c090c] to-transparent -mt-20 relative z-10">
+          {/* Row 1: Trailers */}
+          <div className="flex flex-col">
+            <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
+              Trailers Recientes
+            </h2>
+            <TrailersRow trailers={trailers} onPlay={(tr) => setSelectedTrailer(tr)} />
+          </div>
+
+          {/* Row 2: Games */}
+          <div className="flex flex-col">
+            <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
+              Catálogo Destacado
+            </h2>
+            <GamesRow
+              games={games}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+              onPlay={handlePlayGame}
+            />
+          </div>
+
+          {/* Row 3: Launches */}
+          <div className="flex flex-col">
+            <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
+              Próximas Novedades
+            </h2>
+            <LaunchesRow launches={launches} />
           </div>
         </div>
 
-        {/* Row 2: Games */}
-        <div className="flex flex-col">
-          <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
-            Catálogo Destacado
-          </h2>
-          <div className="flex gap-4 p-4 overflow-x-auto">
-            {games.map((g) => (
-              <GameRowCard
-                key={g.idJuego}
-                game={g}
-                isFavorite={favorites.includes(g.idJuego)}
-                onToggleFavorite={() => handleToggleFavorite(g.idJuego)}
-                onPlay={() => {
-                  const matchingTrailer = trailers.find(
-                    (t) => t.idJuego === g.idJuego,
-                  ) || {
-                    idTrailer: "temp",
-                    idJuego: g.idJuego,
-                    titulo: `Tráiler de ${g.titulo}`,
-                    tipo: "Gameplay",
-                    urlVideo:
-                      "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4",
-                    urlPoster: g.imagenPortada,
-                    duracionSegundos: 120,
-                    vistas: 1000,
-                  };
-                  setSelectedTrailer(matchingTrailer);
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Row 3: Launches */}
-        <div className="flex flex-col">
-          <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
-            Próximas Novedades
-          </h2>
-          <div className="flex gap-4 p-4 overflow-x-auto">
-            {launches.map((l) => (
-              <LaunchRowMiniCard key={l.idLanzamiento} launch={l} />
-            ))}
-          </div>
-        </div>
+        {/* Video Player overlay */}
+        {selectedTrailer && (
+          <VideoPlayer
+            videoUrl={selectedTrailer.urlVideo}
+            title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
+            onClose={() => {
+              setSelectedTrailer(null);
+              delayedFocus(featuredTrailer ? "BANNER_PLAY_BTN" : "SIDEBAR_/home");
+            }}
+          />
+        )}
       </div>
-
-      {/* Video Player overlay */}
-      {selectedTrailer && (
-        <VideoPlayer
-          videoUrl={selectedTrailer.urlVideo}
-          title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
-          onClose={() => {
-            setSelectedTrailer(null);
-            delayedFocus("BANNER_PLAY_BTN");
-          }}
-        />
-      )}
-    </div>
+    </FocusContext.Provider>
   );
 }
 
@@ -452,6 +439,12 @@ function GameRowCard({
     <div
       ref={ref}
       tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "i" || e.keyCode === 405) {
+          e.preventDefault();
+          onToggleFavorite();
+        }
+      }}
       className={`ring-4 min-w-[10rem] w-40 h-60 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
         focused
           ? "border-purple-500 ring-purple-500"
@@ -464,19 +457,15 @@ function GameRowCard({
         alt={game.titulo}
       />
 
-      {/* Hover action overlay */}
       {focused && (
         <div className="absolute inset-0 flex flex-col justify-between p-3 bg-black/75 animate-fade-in">
           <div className="flex justify-end">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite();
-              }}
-              className={`p-1.5 rounded-full ${isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"}`}
-            >
+            {/* Star visual badge */}
+            <div className={`p-1.5 rounded-full pointer-events-none ${
+              isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"
+            }`}>
               <Star className="size-3.5 fill-current" />
-            </button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -486,9 +475,10 @@ function GameRowCard({
             <span className="text-[10px] font-bold text-slate-400">
               {game.desarrollador}
             </span>
-            <button className="bg-purple-500 text-white py-1 rounded text-[10px] font-bold mt-1 flex items-center justify-center gap-1">
+            <div className="bg-purple-500 text-white py-1 rounded text-[10px] font-bold mt-1 flex items-center justify-center gap-1">
               <Play className="size-2.5 fill-current" /> Ver Trailer
-            </button>
+            </div>
+            <div className="text-[9px] text-slate-400 text-center">[i] ★</div>
           </div>
         </div>
       )}

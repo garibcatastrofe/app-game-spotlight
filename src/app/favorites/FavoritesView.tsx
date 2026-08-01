@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, Game, Trailer } from "../../shared/services/api";
+import { api, applyParentalFilter, applyParentalFilterToTrailers, Game, Trailer } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Star, Play, HeartCrack } from "lucide-react";
 
@@ -21,15 +21,20 @@ export function FavoritesView() {
     let isMounted = true;
     const loadFavs = async () => {
       try {
-        const [favsData, trailersData] = await Promise.all([
+        const [favsData, trailersData, settingsData] = await Promise.all([
           api.getFavorites(),
           api.getTrailers(),
+          api.getSettings().catch(() => null),
         ]);
         if (isMounted) {
-          setFavorites(favsData);
-          setTrailers(trailersData);
+          const filteredFavs = applyParentalFilter(favsData, settingsData);
+          const allowedIds = settingsData?.controlParental
+            ? new Set(filteredFavs.map((g) => g.idJuego))
+            : new Set<string>();
+          setFavorites(filteredFavs);
+          setTrailers(applyParentalFilterToTrailers(trailersData, allowedIds));
           setLoading(false);
-          if (favsData.length > 0) delayedFocus(`FAV_CARD_${favsData[0].idJuego}`);
+          delayedFocus(filteredFavs.length > 0 ? `FAV_CARD_${filteredFavs[0].idJuego}` : "SIDEBAR_/favorites");
         }
       } catch (err) {
         console.error(err);
@@ -108,7 +113,7 @@ export function FavoritesView() {
           title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            if (favorites.length > 0) delayedFocus(`FAV_CARD_${favorites[0].idJuego}`);
+            delayedFocus(favorites.length > 0 ? `FAV_CARD_${favorites[0].idJuego}` : "SIDEBAR_/favorites");
           }}
         />
       )}
@@ -132,6 +137,12 @@ function FavoriteCard({ game, onRemove, onPlay }: FavoriteCardProps) {
     <div
       ref={ref}
       tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "i" || e.keyCode === 405) {
+          e.preventDefault();
+          onRemove();
+        }
+      }}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"
@@ -155,23 +166,21 @@ function FavoriteCard({ game, onRemove, onPlay }: FavoriteCardProps) {
           </div>
         )}
         
-        {/* Remove Favorite Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-          className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-red-400 hover:text-red-500 hover:bg-black/70 transition-all duration-200"
-          title="Quitar de favoritos"
-        >
+        {/* Remove badge (visual) + shortcut hint on focus */}
+        <div className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-red-400 pointer-events-none">
           <HeartCrack className="size-4" />
-        </button>
+        </div>
+        {focused && (
+          <div className="absolute bottom-2 right-2 text-[9px] font-bold text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">
+            [i] quitar
+          </div>
+        )}
       </div>
 
       {/* Card Info */}
       <div className="p-4 flex flex-col gap-1 flex-1">
         <h3 className="font-bold text-base text-white leading-tight line-clamp-1">{game.titulo}</h3>
-        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento.split("-")[0]}</p>
+        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento?.split("-")[0] ?? "—"}</p>
       </div>
     </div>
   );

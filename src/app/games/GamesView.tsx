@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, Game, Trailer } from "../../shared/services/api";
+import { api, applyParentalFilter, Game, Trailer, UserSettings } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Star, Play, X } from "lucide-react";
 
@@ -13,6 +13,7 @@ export function GamesView() {
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   const generoId = searchParams.get("generoId") ?? undefined;
@@ -41,14 +42,16 @@ export function GamesView() {
     setLoading(true);
     const loadData = async () => {
       try {
-        const [gamesData, trailersData, favsData] = await Promise.all([
+        const [gamesData, trailersData, favsData, settingsData] = await Promise.all([
           api.getGames({ generoId, plataformaId, search }),
           api.getTrailers().catch(() => [] as Trailer[]),
           api.getFavorites().catch(() => [] as { idJuego: string }[]),
+          api.getSettings().catch(() => null),
         ]);
         if (isMounted) {
           console.log(`GamesView loaded data:`, { gamesData, trailersData, favsData });
-          setGames(gamesData);
+          setSettings(settingsData);
+          setGames(applyParentalFilter(gamesData, settingsData));
           setTrailers(trailersData);
           setFavorites(favsData.map((f) => f.idJuego));
           setLoading(false);
@@ -65,8 +68,7 @@ export function GamesView() {
     };
   }, [generoId, plataformaId, search]);
 
-  const handleToggleFavorite = async (e: React.MouseEvent | undefined, gameId: string) => {
-    if (e) e.stopPropagation();
+  const handleToggleFavorite = async (gameId: string) => {
     try {
       const res = await api.toggleFavorite(gameId, favorites.includes(gameId));
       if (res.favorited) {
@@ -126,7 +128,7 @@ export function GamesView() {
               key={game.idJuego}
               game={game}
               isFavorite={favorites.includes(game.idJuego)}
-              onToggleFavorite={() => handleToggleFavorite(undefined, game.idJuego)}
+              onToggleFavorite={() => handleToggleFavorite(game.idJuego)}
               onPlay={() => handlePlayGameTrailer(game)}
             />
           ))}
@@ -139,7 +141,7 @@ export function GamesView() {
           title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            if (games.length > 0) delayedFocus(`GAME_CARD_${games[0].idJuego}`);
+            delayedFocus(games.length > 0 ? `GAME_CARD_${games[0].idJuego}` : "SIDEBAR_/home");
           }}
         />
       )}
@@ -164,6 +166,12 @@ function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps)
     <div
       ref={ref}
       tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "i" || e.keyCode === 405) {
+          e.preventDefault();
+          onToggleFavorite();
+        }
+      }}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"
@@ -175,9 +183,8 @@ function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps)
         <img
           src={game.imagenPortada}
           alt={game.titulo}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-500"
         />
-        {/* Play icon overlay on focus */}
         {focused && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center animate-fade-in">
             <div className="bg-purple-600 p-4 rounded-full text-white shadow-lg scale-110 animate-bounce">
@@ -185,19 +192,18 @@ function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps)
             </div>
           </div>
         )}
-        
-        {/* Favorite Badge */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite();
-          }}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
-            isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400 hover:text-white"
-          }`}
-        >
+        {/* Favorite badge (visual only) */}
+        <div className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md pointer-events-none ${
+          isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"
+        }`}>
           <Star className={`size-4 ${isFavorite ? "fill-current" : ""}`} />
-        </button>
+        </div>
+        {/* Shortcut hint when focused */}
+        {focused && (
+          <div className="absolute bottom-2 right-2 text-[9px] font-bold text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">
+            [i] ★
+          </div>
+        )}
       </div>
 
       {/* Card Info */}
@@ -233,3 +239,4 @@ function ClearFilterButton({ onPress }: { onPress: () => void }) {
     </button>
   );
 }
+

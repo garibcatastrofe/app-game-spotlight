@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, Game, Trailer } from "../../shared/services/api";
+import { api, applyParentalFilter, Game, Trailer, UserSettings } from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Search, Star, Play } from "lucide-react";
 
@@ -12,6 +12,7 @@ export function SearchView() {
   const [trailers, setTrailers] = useState<Trailer[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedTrailer, setSelectedTrailer] = useState<Trailer | null>(null);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -28,6 +29,7 @@ export function SearchView() {
     setFocus("SEARCH_INPUT");
     api.getFavorites().then((favs) => setFavorites(favs.map((f) => f.idJuego))).catch(() => {});
     api.getTrailers().then(setTrailers).catch(() => {});
+    api.getSettings().then(setSettings).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function SearchView() {
       setLoading(true);
       try {
         const data = await api.getGames({ search: query.trim() });
-        setGames(data);
+        setGames(applyParentalFilter(data, settings));
         setSearched(true);
         if (data.length > 0) delayedFocus(`SEARCH_GAME_${data[0].idJuego}`);
       } catch (err) {
@@ -98,6 +100,12 @@ export function SearchView() {
           placeholder="Escribe el nombre del juego..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              inputRef.current?.blur();
+              setFocus(games.length > 0 ? `SEARCH_GAME_${games[0].idJuego}` : "SIDEBAR_/search");
+            }
+          }}
           className="w-full bg-transparent text-white placeholder-slate-500 text-lg outline-none"
         />
         {loading && (
@@ -162,6 +170,12 @@ function SearchGameCard({
     <div
       ref={ref}
       tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === "i" || e.keyCode === 405) {
+          e.preventDefault();
+          onToggleFavorite();
+        }
+      }}
       className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"
@@ -177,20 +191,24 @@ function SearchGameCard({
             </div>
           </div>
         )}
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
-            isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"
-          }`}
-        >
+        {/* Favorite badge (visual only) */}
+        <div className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md pointer-events-none ${
+          isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"
+        }`}>
           <Star className={`size-4 ${isFavorite ? "fill-current" : ""}`} />
-        </button>
+        </div>
+        {focused && (
+          <div className="absolute bottom-2 right-2 text-[9px] font-bold text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">
+            [i] ★
+          </div>
+        )}
       </div>
       <div className="p-4 flex flex-col gap-1 flex-1">
         <h3 className="font-bold text-lg text-white leading-tight line-clamp-1">{game.titulo}</h3>
-        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento.split("-")[0]}</p>
+        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento?.split("-")[0] ?? "—"}</p>
         <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">{game.descripcion}</p>
       </div>
     </div>
   );
 }
+

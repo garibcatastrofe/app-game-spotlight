@@ -40,10 +40,16 @@ export function SettingsView() {
   const handleUpdate = async (key: keyof UserSettings, value: any) => {
     if (!settings) return;
     try {
-      const updated = { ...settings, [key]: value };
-      setSettings(updated);
+      let payload: Partial<UserSettings> = { [key]: value };
+      let nextSettings = { ...settings, [key]: value };
+      // When enabling parental control with a permissive threshold, default to 16
+      if (key === "controlParental" && value === true && (settings.edadMinima ?? 18) >= 18) {
+        payload = { controlParental: true, edadMinima: 16 };
+        nextSettings = { ...settings, controlParental: true, edadMinima: 16 };
+      }
+      setSettings(nextSettings);
       setSaveStatus("Guardando...");
-      await api.updateSettings({ [key]: value });
+      await api.updateSettings(payload);
       setSaveStatus("Ajustes guardados");
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (err) {
@@ -88,6 +94,23 @@ export function SettingsView() {
           active={settings.controlParental}
           onToggle={() => handleUpdate("controlParental", !settings.controlParental)}
         />
+
+        {/* Minimum Age (only when parental control is on) */}
+        {settings.controlParental && (
+          <SettingOptionRow
+            focusKey="SETTING_EDAD_MINIMA"
+            icon={<Shield className="size-6 text-purple-300" />}
+            title="Edad Mínima"
+            description="Contenido clasificado por encima de esta edad quedará restringido."
+            currentValue={String(settings.edadMinima ?? 18)}
+            options={[
+              { label: "+7", value: "7" },
+              { label: "+12", value: "12" },
+              { label: "+16", value: "16" },
+            ]}
+            onSelect={(val) => handleUpdate("edadMinima", Number(val))}
+          />
+        )}
 
         {/* Video Quality */}
         <SettingOptionRow

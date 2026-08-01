@@ -47,6 +47,7 @@ export interface Game {
   imagenPortada: string;
   bannerUrl: string;
   destacado: boolean;
+  edadMinima: number;
   generos?: { genero: { nombre: string } }[];
   plataformas?: { plataforma: { nombre: string } }[];
 }
@@ -82,6 +83,7 @@ export interface UserSettings {
   emailNotificaciones: boolean;
   notificacionesPush: boolean;
   controlParental: boolean;
+  edadMinima: number;
   calidadVideo: string;
   tamanoTexto: string;
 }
@@ -415,8 +417,8 @@ export const api = {
   // =====================
 
   getNotifications: async (): Promise<Notificacion[]> => {
-    const response = await apiFetch<Notificacion[] >(`${API_BASE_URL}/me/notificaciones`, {});
-    return response
+    const response = await apiFetch<{ data: Notificacion[] }>(`${API_BASE_URL}/me/notificaciones`, {});
+    return response.data ?? [];
   },
 
   markNotificationRead: async (id: string): Promise<void> => {
@@ -427,3 +429,27 @@ export const api = {
     await apiFetch(`${API_BASE_URL}/me/notificaciones/read-all`, { method: "PATCH" });
   },
 };
+
+export function applyParentalFilter(games: Game[], settings: UserSettings | null): Game[] {
+  if (!settings?.controlParental) return games;
+  // Cap at 16: edadMinima=18 (legacy DB default) still blocks 18+ content
+  const effectiveMax = settings.edadMinima >= 18 ? 16 : settings.edadMinima;
+  return games.filter((g) => (g.edadMinima ?? 0) <= effectiveMax);
+}
+
+export function applyParentalFilterToLaunches(
+  launches: UpcomingLaunch[],
+  settings: UserSettings | null
+): UpcomingLaunch[] {
+  if (!settings?.controlParental) return launches;
+  const effectiveMax = settings.edadMinima >= 18 ? 16 : settings.edadMinima;
+  return launches.filter((l) => (l.juego?.edadMinima ?? 0) <= effectiveMax);
+}
+
+export function applyParentalFilterToTrailers(
+  trailers: Trailer[],
+  allowedGameIds: Set<string>
+): Trailer[] {
+  if (allowedGameIds.size === 0) return trailers;
+  return trailers.filter((t) => allowedGameIds.has(t.idJuego));
+}

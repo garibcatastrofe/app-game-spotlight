@@ -22,7 +22,7 @@ export function NoticiasView() {
         if (isMounted) {
           setNoticias(data);
           setLoading(false);
-          if (data.length > 0) delayedFocus(`NOTICIA_CARD_${data[0].idNoticia}`);
+          delayedFocus(data.length > 0 ? `NOTICIA_CARD_${data[0].idNoticia}` : "SIDEBAR_/noticias");
         }
       } catch (err) {
         console.error(err);
