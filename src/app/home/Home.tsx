@@ -292,7 +292,7 @@ function TrailersRow({ trailers, onPlay }: { trailers: Trailer[]; onPlay: (t: Tr
   const { ref, focusKey } = useFocusable({ focusKey: "HOME_TRAILERS_ROW" });
   return (
     <FocusContext.Provider value={focusKey}>
-      <div ref={ref} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+      <div ref={ref} className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
         {trailers.map((t) => (
           <TrailerCard key={t.idTrailer} trailer={t} onPlay={onPlay} />
         ))}
@@ -310,7 +310,7 @@ function GamesRow({ games, favorites, onToggleFavorite, onPlay }: {
   const { ref, focusKey } = useFocusable({ focusKey: "HOME_GAMES_ROW" });
   return (
     <FocusContext.Provider value={focusKey}>
-      <div ref={ref} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+      <div ref={ref} className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
         {games.map((g) => (
           <GameRowCard
             key={g.idJuego}
@@ -329,7 +329,7 @@ function LaunchesRow({ launches }: { launches: UpcomingLaunch[] }) {
   const { ref, focusKey } = useFocusable({ focusKey: "HOME_LAUNCHES_ROW" });
   return (
     <FocusContext.Provider value={focusKey}>
-      <div ref={ref} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+      <div ref={ref} className="flex gap-4 pb-4 overflow-x-auto scrollbar-hide">
         {launches.map((l) => (
           <LaunchRowMiniCard key={l.idLanzamiento} launch={l} />
         ))}

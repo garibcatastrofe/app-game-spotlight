@@ -37,17 +37,17 @@ export function NoticiasView() {
 
   if (loading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="w-12 h-12 border-b-2 border-purple-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6 p-8 w-full">
+    <div className="flex flex-col w-full gap-6 p-8">
       <div>
-        <h1 className="text-4xl font-black text-white tracking-tight uppercase">Noticias</h1>
-        <p className="text-slate-400 text-sm mt-1">Últimas noticias y novedades del mundo de los videojuegos.</p>
+        <h1 className="text-4xl font-black tracking-tight text-white uppercase">Noticias</h1>
+        <p className="mt-1 text-sm text-slate-400">Últimas noticias y novedades del mundo de los videojuegos.</p>
       </div>
 
       <div ref={containerRef} className="flex flex-col gap-6 pb-24">
@@ -55,7 +55,7 @@ export function NoticiasView() {
           <NoticiaCard key={noticia.idNoticia} noticia={noticia} />
         ))}
         {noticias.length === 0 && (
-          <p className="text-slate-500 text-center py-16">No hay noticias disponibles.</p>
+          <p className="py-16 text-center text-slate-500">No hay noticias disponibles.</p>
         )}
       </div>
     </div>
@@ -83,30 +83,30 @@ function NoticiaCard({ noticia }: NoticiaCardProps) {
     <div
       ref={cardRef}
       tabIndex={-1}
-      className={`bg-slate-900 border rounded-2xl overflow-hidden flex h-52 items-center transition-all duration-300 outline-none select-none ${
-        focused ? "border-slate-700" : "border-slate-800"
+      className={`bg-slate-900 ring-4 rounded-2xl overflow-hidden flex h-52 items-center transition-all duration-300 outline-none select-none ${
+        focused ? "ring-purple-500" : "ring-transparent"
       }`}
     >
       {/* Portada */}
-      <div className="w-64 min-w-64 h-full relative bg-slate-950 overflow-hidden">
+      <div className="relative w-64 h-full overflow-hidden min-w-64 bg-slate-950">
         {noticia.imagenPortada ? (
           <img
             src={noticia.imagenPortada}
             alt={noticia.titulo}
-            className="w-full h-full object-cover transition-transform duration-500"
+            className="object-cover w-full h-full transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-slate-800">
-            <span className="text-slate-600 text-xs font-semibold uppercase">Sin imagen</span>
+          <div className="flex items-center justify-center w-full h-full bg-slate-800">
+            <span className="text-xs font-semibold uppercase text-slate-600">Sin imagen</span>
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900/80" />
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 p-6 flex flex-col justify-between h-full">
+      <div className="flex flex-col justify-between flex-1 h-full p-6">
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             {noticia.destacada && (
               <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-full uppercase flex items-center gap-1.5">
                 <Star className="size-3" />
@@ -121,15 +121,15 @@ function NoticiaCard({ noticia }: NoticiaCardProps) {
             )}
           </div>
 
-          <h2 className="text-2xl font-black text-white leading-tight line-clamp-2">{noticia.titulo}</h2>
+          <h2 className="text-2xl font-black leading-tight text-white line-clamp-2">{noticia.titulo}</h2>
 
           {noticia.resumen && (
-            <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">{noticia.resumen}</p>
+            <p className="text-sm leading-relaxed text-slate-300 line-clamp-2">{noticia.resumen}</p>
           )}
         </div>
 
         {noticia.autor && (
-          <div className="flex items-center gap-2 text-slate-500 text-xs">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
             <User className="size-3" />
             <span>{noticia.autor.nombre}</span>
           </div>

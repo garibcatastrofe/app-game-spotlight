@@ -1,7 +1,6 @@
-import { Gamepad2, Bell, Search } from "lucide-react";
+import { Gamepad2, Bell, Search, Settings } from "lucide-react";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useNavigate } from "react-router-dom";
-import user from "./images/userPhoto.jpg";
 
 export function Navbar() {
   return (
@@ -14,7 +13,7 @@ export function Navbar() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-4">
         <SearchIcon />
         <BellIcon />
         <UserProfile />
@@ -32,7 +31,7 @@ function SearchIcon() {
   return (
     <div
       ref={ref}
-      className={`p-2 rounded-full ring-2 transition-all duration-300 mx-4 ${focused ? "ring-purple-500" : "ring-transparent"}`}
+      className={`p-2 rounded-full ring-2 transition-all duration-300 ${focused ? "ring-purple-500" : "ring-transparent"}`}
     >
       <Search className="size-8 min-w-8 min-h-8" />
     </div>
@@ -64,11 +63,11 @@ function UserProfile() {
   });
 
   return (
-    <img
+    <div
       ref={ref}
-      className={`min-w-8 min-h-8 w-8 h-8 rounded-full ring-2 transition-all duration-300 mx-4 ${focused ? "ring-purple-500" : "ring-transparent"}`}
-      src={user}
-      alt="Cerrar sesión"
-    />
+      className={`p-2 rounded-full ring-2 transition-all duration-300 ${focused ? "ring-purple-500" : "ring-transparent"}`}
+    >
+      <Settings className="size-8 min-w-8 min-h-8" />
+    </div>
   );
 }
