@@ -1,8 +1,12 @@
 import { EyeOff, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useFocusable, setFocus } from "@noriginmedia/norigin-spatial-navigation";
+import {
+  useFocusable,
+  setFocus,
+} from "@noriginmedia/norigin-spatial-navigation";
 import { useRef, useState } from "react";
 import { api } from "../../../../shared/services/api";
+import { LinkRegister } from "../linkRegister/LinkRegister";
 
 export function EmailForm() {
   const usernameRef = useRef<HTMLInputElement>(null!);
@@ -32,27 +36,31 @@ export function EmailForm() {
 
   return (
     <div className="flex flex-col justify-center w-full px-10">
-      <p className="mb-4 text-4xl font-bold text-center">ACCESO A TU CUENTA</p>
+      <p className="mb-4 text-4xl font-bold text-center text-white">ACCESO A TU CUENTA</p>
 
       <EmailInput
         inputRef={usernameRef}
         onAdvance={() => {
-          usernameRef.current?.blur();
+          /* usernameRef.current?.blur();
           setFocus("LOGIN_PASSWORD");
-          passwordRef.current?.focus();
+          passwordRef.current?.focus(); */
         }}
       />
       <PasswordInput
         inputRef={passwordRef}
         onSubmit={() => {
-          passwordRef.current?.blur();
-          handleLogin();
+          /* passwordRef.current?.blur();
+          handleLogin(); */
         }}
       />
       <LoginButton loading={loading} onSubmit={handleLogin} />
 
+      <LinkRegister />
+
       {error && (
-        <p className="text-red-400 text-center mt-2 text-lg font-semibold">{error}</p>
+        <p className="mt-2 text-lg font-semibold text-center text-red-400">
+          {error}
+        </p>
       )}
     </div>
   );
@@ -74,7 +82,9 @@ function EmailInput({
 
   return (
     <div className="flex flex-col mb-4">
-      <p className="mb-4 text-lg text-slate-200">CORREO ELECTRÓNICO / USUARIO</p>
+      <p className="mb-4 text-lg text-slate-200">
+        CORREO ELECTRÓNICO / USUARIO
+      </p>
       <div
         ref={ref}
         tabIndex={-1}
@@ -88,7 +98,7 @@ function EmailInput({
           type="text"
           className="w-full bg-transparent outline-none"
           onKeyDown={(e) => {
-            if (ARROW_KEYS.includes(e.key)) e.stopPropagation();
+            //if (ARROW_KEYS.includes(e.key)) e.stopPropagation();
             if (e.key === "Enter") {
               e.preventDefault();
               onAdvance();
@@ -128,20 +138,25 @@ function PasswordInput({
           type="password"
           className="w-full bg-transparent outline-none"
           onKeyDown={(e) => {
-            if (ARROW_KEYS.includes(e.key)) e.stopPropagation();
+            //if (ARROW_KEYS.includes(e.key)) e.stopPropagation();
             if (e.key === "Enter") {
               e.preventDefault();
               onSubmit();
             }
           }}
         />
-        <EyeOff className="ml-4 size-10 min-h-10 min-w-10 text-slate-300" />
       </div>
     </div>
   );
 }
 
-function LoginButton({ loading, onSubmit }: { loading: boolean; onSubmit: () => void }) {
+function LoginButton({
+  loading,
+  onSubmit,
+}: {
+  loading: boolean;
+  onSubmit: () => void;
+}) {
   const { ref, focused } = useFocusable({
     focusKey: "LOGIN_BTN",
     onEnterPress: onSubmit,
@@ -160,5 +175,3 @@ function LoginButton({ loading, onSubmit }: { loading: boolean; onSubmit: () => 
     </button>
   );
 }
-
-

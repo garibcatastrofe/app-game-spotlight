@@ -1,4 +1,10 @@
-import { Routes, Route, HashRouter, useLocation, Outlet } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  HashRouter,
+  useLocation,
+  Outlet,
+} from "react-router-dom";
 /* import { useEffect, useRef } from "react";
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation"; */
 import { Login } from "../app/login/Login";
@@ -16,10 +22,11 @@ import { NotificationsView } from "../app/notifications/NotificationsView";
 import { Navbar } from "../shared/components/navbar/Navbar";
 import { Sidebar } from "../shared/components/sidebar/Sidebar";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { Register } from "../app/register/Register";
 
 const Layout: React.FC = () => {
   const { pathname } = useLocation();
-  const isInLogin = pathname === "/";
+  const isInLogin = pathname === "/" || pathname === "/register";
   /* const contentRef = useRef<HTMLDivElement>(null); */
 
   /* useEffect(() => {
@@ -34,11 +41,20 @@ const Layout: React.FC = () => {
       <div className="flex flex-1 min-h-0">
         {!isInLogin && <Sidebar />}
 
-        <div /* ref={contentRef} */ className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto flex flex-col bg-[#080815]">
+        <div
+          /* ref={contentRef} */ className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto flex flex-col bg-[#080815]"
+        >
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             {/* Everything below requires an authenticated session */}
-            <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Outlet />
+                </ProtectedRoute>
+              }
+            >
               <Route path="/home" element={<Home />} />
               <Route path="/games" element={<GamesView />} />
               <Route path="/trailers" element={<TrailersView />} />
@@ -54,7 +70,14 @@ const Layout: React.FC = () => {
               <Route path="/features" element={<Home />} />
             </Route>
 
-            <Route path="/*" element={<p className="p-8 text-xl font-bold text-center">Página no encontrada</p>} />
+            <Route
+              path="/*"
+              element={
+                <p className="p-8 text-xl font-bold text-center">
+                  Página no encontrada
+                </p>
+              }
+            />
           </Routes>
         </div>
       </div>

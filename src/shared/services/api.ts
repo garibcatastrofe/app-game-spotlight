@@ -302,7 +302,7 @@ export const api = {
   // =====================
 
   getUpcomingLaunches: async (): Promise<UpcomingLaunch[]> => {
-    const response = await apiFetch<{ data: UpcomingLaunch[] }>(`${API_BASE_URL}/proximos-lanzamientos`, {});
+    const response = await apiFetch<{ data: UpcomingLaunch[] }>(`${API_BASE_URL}/proximos-lanzamientos?page=1&limit=100`, {});
     const rawLaunches = response.data || [];
     if (!rawLaunches.length) return [];
 
