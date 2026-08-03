@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, applyParentalFilter, Game, Trailer, UserSettings } from "../../shared/services/api";
+import {
+  api,
+  applyParentalFilter,
+  Game,
+  Trailer,
+  UserSettings,
+} from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Star, Play, X } from "lucide-react";
 
@@ -42,20 +48,29 @@ export function GamesView() {
     setLoading(true);
     const loadData = async () => {
       try {
-        const [gamesData, trailersData, favsData, settingsData] = await Promise.all([
-          api.getGames({ generoId, plataformaId, search }),
-          api.getTrailers().catch(() => [] as Trailer[]),
-          api.getFavorites().catch(() => [] as { idJuego: string }[]),
-          api.getSettings().catch(() => null),
-        ]);
+        const [gamesData, trailersData, favsData, settingsData] =
+          await Promise.all([
+            api.getGames({ generoId, plataformaId, search }),
+            api.getTrailers().catch(() => [] as Trailer[]),
+            api.getFavorites().catch(() => [] as { idJuego: string }[]),
+            api.getSettings().catch(() => null),
+          ]);
         if (isMounted) {
-          console.log(`GamesView loaded data:`, { gamesData, trailersData, favsData });
+          console.log(`GamesView loaded data:`, {
+            gamesData,
+            trailersData,
+            favsData,
+          });
           setSettings(settingsData);
           setGames(applyParentalFilter(gamesData, settingsData));
           setTrailers(trailersData);
           setFavorites(favsData.map((f) => f.idJuego));
           setLoading(false);
-          delayedFocus(gamesData.length > 0 ? `GAME_CARD_${gamesData[0].idJuego}` : "GAMES_CLEAR_FILTER");
+          delayedFocus(
+            gamesData.length > 0
+              ? `GAMEROW_TOOGLE_FAVORITE_${gamesData[0].idJuego}`
+              : "GAMES_CLEAR_FILTER",
+          );
         }
       } catch (err) {
         console.error(err);
@@ -88,7 +103,8 @@ export function GamesView() {
       idJuego: game.idJuego,
       titulo: `Tráiler de ${game.titulo}`,
       tipo: "Gameplay",
-      urlVideo: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4",
+      urlVideo:
+        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4",
       urlPoster: game.imagenPortada,
       duracionSegundos: 120,
       vistas: 1000,
@@ -98,18 +114,23 @@ export function GamesView() {
 
   if (loading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="w-12 h-12 border-b-2 border-purple-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6 p-8 w-full">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col w-full gap-6 p-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-black text-white tracking-tight uppercase">Catálogo de Juegos</h1>
-          <p className="text-slate-400 text-sm mt-1">Explora los mejores videojuegos del mercado y reproduce sus trailers exclusivos.</p>
+          <h1 className="text-4xl font-black tracking-tight text-white uppercase">
+            Catálogo de Juegos
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Explora los mejores videojuegos del mercado y reproduce sus trailers
+            exclusivos.
+          </p>
         </div>
         {(generoId || plataformaId || search) && (
           <ClearFilterButton onPress={() => navigate("/games")} />
@@ -118,7 +139,9 @@ export function GamesView() {
 
       {games.length === 0 ? (
         <div className="flex flex-col items-center justify-center flex-1 gap-4 py-24">
-          <p className="text-slate-500 text-lg">Sin resultados para este filtro.</p>
+          <p className="text-lg text-slate-500">
+            Sin resultados para este filtro.
+          </p>
           <ClearFilterButton onPress={() => navigate("/games")} />
         </div>
       ) : (
@@ -141,7 +164,11 @@ export function GamesView() {
           title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
           onClose={() => {
             setSelectedTrailer(null);
-            delayedFocus(games.length > 0 ? `GAME_CARD_${games[0].idJuego}` : "SIDEBAR_/home");
+            delayedFocus(
+              games.length > 0
+                ? `GAMEROW_TOOGLE_FAVORITE_${games[0].idJuego}`
+                : "SIDEBAR_/home",
+            );
           }}
         />
       )}
@@ -156,64 +183,165 @@ interface GameCardProps {
   onPlay: () => void;
 }
 
-function GameCard({ game, isFavorite, onToggleFavorite, onPlay }: GameCardProps) {
-  const { ref, focused } = useFocusable({
+function GameCard({
+  game,
+  isFavorite,
+  onToggleFavorite,
+  onPlay,
+}: GameCardProps) {
+  /* const { ref, focused } = useFocusable({
     focusKey: `GAME_CARD_${game.idJuego}`,
     onEnterPress: () => onPlay(),
-  });
+  }); */
 
   return (
     <div
-      ref={ref}
+      /* ref={ref}
       tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "i" || e.keyCode === 405) {
           e.preventDefault();
           onToggleFavorite();
         }
-      }}
-      className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
+      }} */
+      className={`bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative`}
+      /* ${
         focused
           ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"
           : "border-slate-800"
-      }`}
+      } */
     >
       {/* Cover image container */}
-      <div className="h-64 relative overflow-hidden bg-slate-950">
+      <div className="relative h-24 overflow-hidden bg-slate-950">
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/80 to-transparent"></div>
         <img
           src={game.imagenPortada}
           alt={game.titulo}
-          className="w-full h-full object-cover transition-transform duration-500"
+          className="z-0 object-cover w-full h-full transition-transform duration-500"
         />
-        {focused && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center animate-fade-in">
-            <div className="bg-purple-600 p-4 rounded-full text-white shadow-lg scale-110 animate-bounce">
-              <Play className="size-8 fill-current" />
+        <div className="absolute z-20 top-4 right-4">
+          <FavoriteIcon
+            game={game}
+            isFavorite={isFavorite}
+            onToggleFavorite={onToggleFavorite}
+          />
+        </div>
+        {/* {focused && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 animate-fade-in">
+            <div className="p-4 text-white scale-110 bg-purple-600 rounded-full shadow-lg animate-bounce">
+              <Play className="fill-current size-8" />
             </div>
           </div>
-        )}
+        )} */}
         {/* Favorite badge (visual only) */}
-        <div className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md pointer-events-none ${
-          isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"
-        }`}>
-          <Star className={`size-4 ${isFavorite ? "fill-current" : ""}`} />
-        </div>
+
         {/* Shortcut hint when focused */}
-        {focused && (
+        {/* {focused && (
           <div className="absolute bottom-2 right-2 text-[9px] font-bold text-slate-300 bg-black/60 px-1.5 py-0.5 rounded">
             [i] ★
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Card Info */}
-      <div className="p-4 flex flex-col gap-1 flex-1">
-        <div className="flex justify-between items-start gap-1">
-          <h3 className="font-bold text-lg text-white leading-tight line-clamp-1">{game.titulo}</h3>
+      <div className="flex flex-col flex-1 gap-1 p-4">
+        <div className="flex items-start justify-between gap-1">
+          <h3 className="text-lg font-bold leading-tight text-white line-clamp-1">
+            {game.titulo}
+          </h3>
         </div>
-        <p className="text-xs text-slate-400 font-semibold">{game.desarrollador} • {game.fechaLanzamiento?.split("-")[0] ?? ""}</p>
-        <p className="text-xs text-slate-400 line-clamp-2 mt-2 leading-relaxed">{game.descripcion}</p>
+        <p className="text-xs font-semibold text-slate-400">
+          {game.desarrollador} • {game.fechaLanzamiento?.split("-")[0] ?? ""}
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-slate-400 line-clamp-2">
+          {game.descripcion}
+        </p>
+
+        <ViewTrailerToogle game={game} onPlay={onPlay} />
       </div>
+
+      
+    </div>
+  );
+}
+
+function FavoriteIcon({
+  isFavorite,
+  onToggleFavorite,
+  game,
+}: {
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+  game: Game;
+}) {
+  const { ref, focused } = useFocusable({
+    focusKey: `GAMEROW_TOOGLE_FAVORITE_${game.idJuego}`,
+    onEnterPress: () => onToggleFavorite(),
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
+  });
+
+  useEffect(() => {
+    if (focused) {
+      (ref.current as HTMLElement)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [focused, ref]);
+
+  return (
+    <div className="z-20 flex justify-end outline-none" ref={ref} tabIndex={-1}>
+      <div
+        className={`p-1.5 rounded-full pointer-events-none transition-all duration-300 ring-4 ${focused ? "ring-purple-400" : "ring-transparent"} ${
+          isFavorite ? "bg-amber-500 text-white" : "bg-black/50 text-slate-400"
+        }`}
+      >
+        <Star className="size-3.5 fill-current" />
+      </div>
+    </div>
+  );
+}
+
+function ViewTrailerToogle({
+  onPlay,
+  game,
+}: {
+  onPlay: () => void;
+  game: Game;
+}) {
+  const { ref, focused } = useFocusable({
+    focusKey: `GAMEROW_TOOGLE_PLAY_${game.idJuego}`,
+    onEnterPress: () => onPlay(),
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
+  });
+
+  useEffect(() => {
+    if (focused) {
+      (ref.current as HTMLElement)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [focused, ref]);
+
+  return (
+    <div
+      ref={ref}
+      tabIndex={-1}
+      className={`py-1 rounded text-xs font-bold mt-1 flex items-center justify-center gap-1 transition-all duration-300 outline-none ${focused ? "bg-purple-500" : "bg-purple-500/20"}`}
+    >
+      <Play className="size-2.5 text-white" />{" "}
+      <p className="text-white">Ver Trailer</p>
     </div>
   );
 }
@@ -239,4 +367,3 @@ function ClearFilterButton({ onPress }: { onPress: () => void }) {
     </button>
   );
 }
-

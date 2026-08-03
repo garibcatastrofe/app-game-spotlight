@@ -111,14 +111,14 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-black z-50 flex items-center justify-center cursor-none select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black select-none cursor-none"
       onClick={resetControlsTimer}
       onMouseMove={resetControlsTimer}
     >
       <video
         ref={videoRef}
         src={videoUrl ?? undefined}
-        className="w-full h-full object-contain"
+        className="object-contain w-full h-full"
         autoPlay
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
@@ -132,9 +132,9 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
         }`}
       >
         {/* Top Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
-            <span className="text-purple-400 font-bold uppercase tracking-wider text-sm">Reproduciendo Tráiler</span>
+            <span className="text-sm font-bold tracking-wider text-purple-400 uppercase">Reproduciendo Tráiler</span>
             <h2 className="text-3xl font-black text-white drop-shadow-md">{title}</h2>
           </div>
           <button
@@ -143,18 +143,18 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
               closeBtnFocused ? "border-purple-500 scale-110 bg-purple-600/30" : "border-slate-600 hover:border-white"
             }`}
           >
-            <X className="size-6 text-white" />
+            <X className="text-white size-6" />
           </button>
         </div>
 
         {/* Bottom Controls */}
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col w-full gap-4">
           {/* Progress Bar */}
-          <div className="flex items-center gap-4 text-sm text-slate-300 font-mono">
+          <div className="flex items-center gap-4 font-mono text-sm text-slate-300">
             <span>{formatTime(currentTime)}</span>
-            <div className="flex-1 h-2 bg-slate-700/60 rounded-full overflow-hidden relative">
+            <div className="relative flex-1 h-2 overflow-hidden rounded-full bg-slate-700/60">
               <div
-                className="h-full bg-purple-500 transition-all duration-100 rounded-full"
+                className="h-full transition-all duration-100 bg-purple-500 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -191,7 +191,7 @@ export function VideoPlayer({ videoUrl, title, onClose }: VideoPlayerProps) {
               </button>
             </div>
 
-            <div className="text-slate-400 text-sm italic">
+            <div className="text-sm italic text-slate-400">
               Pulsa <span className="font-bold text-slate-200">BACK</span> o <span className="font-bold text-slate-200">ESC</span> para salir
             </div>
           </div>

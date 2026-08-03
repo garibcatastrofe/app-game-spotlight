@@ -48,17 +48,17 @@ export function TrailersView() {
 
   if (loading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="w-12 h-12 border-b-2 border-purple-500 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6 p-8 w-full">
+    <div className="flex flex-col w-full gap-6 p-8">
       <div>
-        <h1 className="text-4xl font-black text-white tracking-tight uppercase">Trailers Exclusivos</h1>
-        <p className="text-slate-400 text-sm mt-1">Disfruta de los últimos avances de tus videojuegos favoritos en calidad premium.</p>
+        <h1 className="text-4xl font-black tracking-tight text-white uppercase">Trailers Exclusivos</h1>
+        <p className="mt-1 text-sm text-slate-400">Disfruta de los últimos avances de tus videojuegos favoritos en calidad premium.</p>
       </div>
 
       <div
@@ -86,7 +86,7 @@ export function TrailersView() {
       )}
       {selectedTrailer && !selectedTrailer.urlVideo && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/80"
           onKeyDown={(e) => {
             if (e.key === "Escape" || e.key === "Backspace") {
               setSelectedTrailer(null);
@@ -95,8 +95,8 @@ export function TrailersView() {
           }}
           tabIndex={-1}
         >
-          <p className="text-slate-400 text-lg">Video no disponible</p>
-          <p className="text-slate-500 text-sm">Pulsa <span className="font-bold text-slate-300">BACK</span> o <span className="font-bold text-slate-300">ESC</span> para volver</p>
+          <p className="text-lg text-slate-400">Video no disponible</p>
+          <p className="text-sm text-slate-500">Pulsa <span className="font-bold text-slate-300">BACK</span> o <span className="font-bold text-slate-300">ESC</span> para volver</p>
         </div>
       )}
     </div>
@@ -124,18 +124,18 @@ function TrailerGridCard({ trailer, onPlay }: TrailerGridCardProps) {
     <div
       ref={ref}
       tabIndex={-1}
-      className={`bg-slate-900 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
+      className={`bg-slate-900 ring-4 border rounded-2xl overflow-hidden flex flex-col transition-all duration-300 transform outline-none select-none relative ${
         focused
-          ? "border-purple-500 ring-4 ring-purple-500/40 scale-105 shadow-[0_10px_20px_rgba(168,85,247,0.25)]"
-          : "border-slate-800"
+          ? "border-purple-500 ring-purple-500"
+          : "border-slate-800 ring-transparent"
       }`}
     >
       {/* Thumbnail */}
-      <div className="h-48 relative overflow-hidden bg-slate-950">
+      <div className="relative h-48 overflow-hidden bg-slate-950">
         <img
           src={trailer.urlPoster ?? undefined}
           alt={trailer.titulo}
-          className="w-full h-full object-cover transition-transform duration-500"
+          className={`object-cover w-full h-full transition-all duration-300 ${focused ? "scale-110" : "scale-100"}`}
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = 'none';
           }}
@@ -144,18 +144,18 @@ function TrailerGridCard({ trailer, onPlay }: TrailerGridCardProps) {
         
         {/* Play Icon on Focus */}
         {focused && (
-          <div className="absolute inset-0 bg-black/55 flex items-center justify-center animate-fade-in">
-            <div className="bg-purple-600 p-4 rounded-full text-white shadow-lg scale-110">
-              <Play className="size-6 fill-current" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/55 animate-fade-in">
+            <div className="p-4 text-white scale-110 bg-purple-600 rounded-full shadow-lg">
+              <Play className="fill-current size-6" />
             </div>
           </div>
         )}
 
         {/* Badges */}
-        <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-xs text-slate-200 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+        {/* <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-xs text-slate-200 font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
           <Clock className="size-3" />
           {Math.floor(trailer.duracionSegundos / 60)}:{(trailer.duracionSegundos % 60) < 10 ? "0" : ""}{trailer.duracionSegundos % 60}
-        </span>
+        </span> */}
 
         <span className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
           {trailer.tipo}
@@ -168,13 +168,13 @@ function TrailerGridCard({ trailer, onPlay }: TrailerGridCardProps) {
           <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest leading-none">
             {trailer.juego?.titulo || "Video"}
           </span>
-          <h3 className="font-bold text-base text-white leading-snug line-clamp-2 mt-1">{trailer.titulo}</h3>
+          <h3 className="mt-1 text-base font-bold leading-snug text-white line-clamp-2">{trailer.titulo}</h3>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-400 font-semibold mt-2">
+        {/* <div className="flex items-center gap-2 mt-2 text-xs font-semibold text-slate-400">
           <Eye className="size-3.5" />
           <span>{formatViews(trailer.vistas)}</span>
-        </div>
+        </div> */}
       </div>
     </div>
   );

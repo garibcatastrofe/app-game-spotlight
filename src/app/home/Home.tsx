@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { FocusContext, useFocusable } from "@noriginmedia/norigin-spatial-navigation";
+import {
+  FocusContext,
+  useFocusable,
+} from "@noriginmedia/norigin-spatial-navigation";
 import { useDelayedFocus } from "../../shared/hooks/useDelayedFocus";
-import { api, applyParentalFilter, applyParentalFilterToLaunches, applyParentalFilterToTrailers, Game, Trailer, UpcomingLaunch } from "../../shared/services/api";
+import {
+  api,
+  applyParentalFilter,
+  applyParentalFilterToLaunches,
+  applyParentalFilterToTrailers,
+  Game,
+  Trailer,
+  UpcomingLaunch,
+} from "../../shared/services/api";
 import { VideoPlayer } from "../../shared/components/player/VideoPlayer";
 import { Play, Plus, Check, Star } from "lucide-react";
 
@@ -41,7 +52,9 @@ export function Home() {
             : new Set<string>();
           setGames(filteredGames);
           setTrailers(applyParentalFilterToTrailers(trailersData, allowedIds));
-          setLaunches(applyParentalFilterToLaunches(launchesData, settingsData));
+          setLaunches(
+            applyParentalFilterToLaunches(launchesData, settingsData),
+          );
           setFavorites(favsData.map((f) => f.idJuego));
 
           const featured =
@@ -50,7 +63,10 @@ export function Home() {
 
           let trailer: Trailer | null = null;
           if (featured) {
-            const filteredTrailers = applyParentalFilterToTrailers(trailersData, allowedIds);
+            const filteredTrailers = applyParentalFilterToTrailers(
+              trailersData,
+              allowedIds,
+            );
             trailer =
               filteredTrailers.find((t) => t.idJuego === featured.idJuego) ||
               filteredTrailers[0] ||
@@ -60,9 +76,11 @@ export function Home() {
 
           setLoading(false);
           delayedFocus(
-            featured && trailer ? "BANNER_PLAY_BTN" :
-            featured ? "BANNER_LIST_BTN" :
-            "SIDEBAR_/home"
+            featured && trailer
+              ? "BANNER_PLAY_BTN"
+              : featured
+                ? "BANNER_LIST_BTN"
+                : "SIDEBAR_/home",
           );
         }
       } catch (err) {
@@ -83,10 +101,15 @@ export function Home() {
 
   const handlePlayGame = (g: Game) => {
     const matchingTrailer = trailers.find((t) => t.idJuego === g.idJuego) || {
-      idTrailer: "temp", idJuego: g.idJuego,
-      titulo: `Tráiler de ${g.titulo}`, tipo: "Gameplay",
-      urlVideo: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4",
-      urlPoster: g.imagenPortada, duracionSegundos: 120, vistas: 1000,
+      idTrailer: "temp",
+      idJuego: g.idJuego,
+      titulo: `Tráiler de ${g.titulo}`,
+      tipo: "Gameplay",
+      urlVideo:
+        "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4",
+      urlPoster: g.imagenPortada,
+      duracionSegundos: 120,
+      vistas: 1000,
     };
     setSelectedTrailer(matchingTrailer as Trailer);
   };
@@ -137,7 +160,10 @@ export function Home() {
             <h2 className="mb-4 text-xl font-bold tracking-wider uppercase text-slate-100">
               Trailers Recientes
             </h2>
-            <TrailersRow trailers={trailers} onPlay={(tr) => setSelectedTrailer(tr)} />
+            <TrailersRow
+              trailers={trailers}
+              onPlay={(tr) => setSelectedTrailer(tr)}
+            />
           </div>
 
           {/* Row 2: Games */}
@@ -169,7 +195,9 @@ export function Home() {
             title={`${selectedTrailer.juego?.titulo || "Juego"} — ${selectedTrailer.titulo}`}
             onClose={() => {
               setSelectedTrailer(null);
-              delayedFocus(featuredTrailer ? "BANNER_PLAY_BTN" : "SIDEBAR_/home");
+              delayedFocus(
+                featuredTrailer ? "BANNER_PLAY_BTN" : "SIDEBAR_/home",
+              );
             }}
           />
         )}
@@ -288,7 +316,13 @@ function HeroBanner({
 }
 
 // Row containers with FocusContext so off-screen cards stay reachable via arrow keys
-function TrailersRow({ trailers, onPlay }: { trailers: Trailer[]; onPlay: (t: Trailer) => void }) {
+function TrailersRow({
+  trailers,
+  onPlay,
+}: {
+  trailers: Trailer[];
+  onPlay: (t: Trailer) => void;
+}) {
   const { ref, focusKey } = useFocusable({ focusKey: "HOME_TRAILERS_ROW" });
   return (
     <FocusContext.Provider value={focusKey}>
@@ -301,7 +335,12 @@ function TrailersRow({ trailers, onPlay }: { trailers: Trailer[]; onPlay: (t: Tr
   );
 }
 
-function GamesRow({ games, favorites, onToggleFavorite, onPlay }: {
+function GamesRow({
+  games,
+  favorites,
+  onToggleFavorite,
+  onPlay,
+}: {
   games: Game[];
   favorites: string[];
   onToggleFavorite: (id: string) => void;
@@ -349,7 +388,12 @@ function TrailerCard({
   const { ref, focused } = useFocusable({
     focusKey: `TRAILER_CARD_${trailer.idTrailer}`,
     onEnterPress: () => onPlay(trailer),
-    onFocus: () => ref.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }),
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
   });
 
   useEffect(() => {
@@ -365,11 +409,7 @@ function TrailerCard({
     <div
       ref={ref}
       tabIndex={-1}
-      className={`ring-4 min-w-[18rem] w-72 h-44 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
-        focused
-          ? "border-purple-500 ring-purple-500"
-          : "border-slate-800 ring-transparent"
-      }`}
+      className={`border-slate-800 min-w-[18rem] w-72 h-44 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none`}
     >
       <img
         src={trailer.urlPoster}
@@ -400,11 +440,11 @@ function TrailerCard({
       </div>
 
       {/* Duration badge */}
-      <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-[10px] text-slate-300 font-bold px-1.5 py-0.5 rounded font-mono">
+      {/* <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-[10px] text-slate-300 font-bold px-1.5 py-0.5 rounded font-mono">
         {Math.floor(trailer.duracionSegundos / 60)}:
         {trailer.duracionSegundos % 60 < 10 ? "0" : ""}
         {trailer.duracionSegundos % 60}
-      </span>
+      </span> */}
     </div>
   );
 }
@@ -420,10 +460,15 @@ function GameRowCard({
   onToggleFavorite: () => void;
   onPlay: () => void;
 }) {
-  const { ref, focused } = useFocusable({
+  /* const { ref, focused } = useFocusable({
     focusKey: `GAMEROW_CARD_${game.idJuego}`,
     onEnterPress: () => onPlay(),
-    onFocus: () => ref.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }),
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
   });
 
   useEffect(() => {
@@ -433,37 +478,59 @@ function GameRowCard({
         block: "center",
       });
     }
-  }, [focused, ref]);
+  }, [focused, ref]); */
 
   return (
     <div
-      ref={ref}
+      /* ref={ref}
       tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === "i" || e.keyCode === 405) {
           e.preventDefault();
           onToggleFavorite();
         }
-      }}
-      className={`ring-4 min-w-[10rem] w-40 h-60 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
+      }} */
+      className={`ring-4 min-w-[10rem] w-40 h-60 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none border-slate-800 ring-transparent`}
+      /*  ${
         focused
           ? "border-purple-500 ring-purple-500"
           : "border-slate-800 ring-transparent"
-      }`}
+      } */
     >
       <img
         src={game.imagenPortada}
-        className={`object-cover w-full h-full transition-all duration-300 ${focused ? "scale-110" : "scale-100"}`}
+        className={`object-cover w-full h-full transition-all duration-300`}
         alt={game.titulo}
       />
 
-      {focused && (
+      <div className="absolute inset-0 flex flex-col justify-between p-3 bg-gradient-to-t from-black/80 via-transparent to-black/30 animate-fade-in">
+        <FavoriteIcon
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+          game={game}
+        />
+
+        <div className="flex flex-col gap-1.5">
+          <h4 className="text-xs font-bold text-white line-clamp-2">
+            {game.titulo}
+          </h4>
+          <span className="text-[10px] font-bold text-slate-400">
+            {game.desarrollador}
+          </span>
+          <ViewTrailerToogle onPlay={onPlay} game={game} />
+        </div>
+      </div>
+
+      {/* {focused && (
         <div className="absolute inset-0 flex flex-col justify-between p-3 bg-black/75 animate-fade-in">
           <div className="flex justify-end">
-            {/* Star visual badge */}
-            <div className={`p-1.5 rounded-full pointer-events-none ${
-              isFavorite ? "bg-purple-600 text-white" : "bg-black/50 text-slate-400"
-            }`}>
+            <div
+              className={`p-1.5 rounded-full pointer-events-none ${
+                isFavorite
+                  ? "bg-purple-600 text-white"
+                  : "bg-black/50 text-slate-400"
+              }`}
+            >
               <Star className="size-3.5 fill-current" />
             </div>
           </div>
@@ -481,15 +548,69 @@ function GameRowCard({
             <div className="text-[9px] text-slate-400 text-center">[i] ★</div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
 
-function LaunchRowMiniCard({ launch }: { launch: UpcomingLaunch }) {
+function FavoriteIcon({
+  isFavorite,
+  onToggleFavorite,
+  game,
+}: {
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+  game: Game;
+}) {
   const { ref, focused } = useFocusable({
-    focusKey: `LAUNCHROW_CARD_${launch.idLanzamiento}`,
-    onFocus: () => ref.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' }),
+    focusKey: `GAMEROW_TOOGLE_FAVORITE_${game.idJuego}`,
+    onEnterPress: () => onToggleFavorite(),
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
+  });
+
+  useEffect(() => {
+    if (focused) {
+      (ref.current as HTMLElement)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [focused, ref]);
+
+  return (
+    <div className="flex justify-end outline-none" ref={ref} tabIndex={-1}>
+      <div
+        className={`p-1.5 rounded-full pointer-events-none transition-all duration-300 ring-4 ${focused ? "ring-purple-400" : "ring-transparent"} ${
+          isFavorite ? "bg-amber-500 text-white" : "bg-black/50 text-slate-400"
+        }`}
+      >
+        <Star className="size-3.5 fill-current" />
+      </div>
+    </div>
+  );
+}
+
+function ViewTrailerToogle({
+  onPlay,
+  game,
+}: {
+  onPlay: () => void;
+  game: Game;
+}) {
+  const { ref, focused } = useFocusable({
+    focusKey: `GAMEROW_TOOGLE_PLAY_${game.idJuego}`,
+    onEnterPress: () => onPlay(),
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
   });
 
   useEffect(() => {
@@ -505,11 +626,39 @@ function LaunchRowMiniCard({ launch }: { launch: UpcomingLaunch }) {
     <div
       ref={ref}
       tabIndex={-1}
-      className={`ring-4 min-w-[16rem] w-64 h-36 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${
-        focused
-          ? "border-purple-500 ring-purple-500"
-          : "border-slate-800 ring-transparent"
-      }`}
+      className={`py-1 rounded text-xs font-bold mt-1 flex items-center justify-center gap-1 transition-all duration-300 outline-none ${focused ? "bg-purple-500" : "bg-purple-500/20"}`}
+    >
+      <Play className="size-2.5 text-white" />{" "}
+      <p className="text-white">Ver Trailer</p>
+    </div>
+  );
+}
+
+function LaunchRowMiniCard({ launch }: { launch: UpcomingLaunch }) {
+  const { ref, focused } = useFocusable({
+    focusKey: `LAUNCHROW_CARD_${launch.idLanzamiento}`,
+    onFocus: () =>
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "nearest",
+        block: "nearest",
+      }),
+  });
+
+  useEffect(() => {
+    if (focused) {
+      (ref.current as HTMLElement)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [focused, ref]);
+
+  return (
+    <div
+      ref={ref}
+      tabIndex={-1}
+      className={`min-w-[16rem] w-64 h-36 bg-slate-900 border rounded-xl overflow-hidden relative transition-all duration-300 transform outline-none ${focused ? "border-purple-500" : "border-slate-800"}`}
     >
       <img
         src={launch.bannerUrl}
